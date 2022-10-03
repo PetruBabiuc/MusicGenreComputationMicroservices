@@ -1,0 +1,3 @@
+HOST = 'localhost'
+CLIENT_PORT = 1800
+RESULTS_PORT = 1801
