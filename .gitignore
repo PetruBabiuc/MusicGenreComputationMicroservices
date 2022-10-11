@@ -135,4 +135,3 @@ dmypy.json
 *.txt
 dnn/*
 .idea
-.gitignore
