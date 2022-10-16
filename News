@@ -1,0 +1,7 @@
+- Added GenreComputerRequestManager microservice. Depending on the source of the genre computation request, it routes the results.
+- Extracted the genre computation awaiting mechanism from Controller in SocketJsonMessageAwaiter. Encapsulated a part of it in an abstract class, AbstractMessageAwaiter.
+- Modified message header extraction in every microservice in the genre computation pipeline. Instead of extracting a song id they extract a request id now.
+- Encapsulated bytes to and from string conversion with base64 module in a class.
+- Improved type hints.
+- Implemented SongGenreObtainer microservice. It obtains the genres of the songs received from SongUrlProcessors.
+- Changed the implementation of RabbitMqConsumer. Now it doesn't close the channel (neither the underlying socket) to the RabbitMq queue, it continues to read from it. The speed of the genre computation pipeline improved: at 34 songs went from 111s to 80s.

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
@@ -10,6 +12,7 @@ class RabbitMqConsumer(AbstractRabbitMqClient, AsyncMessageConsumerInterface):
     def __init__(self, queue_name: str, message_callback: Callable[[bytes], None]):
         self.__queue_name = queue_name
         self.__received_message_callback = message_callback
+        self.__channel: BlockingChannel | None = None
 
     def __on_received_message(self, blocking_channel: BlockingChannel, deliver, properties,
                               message):
@@ -18,14 +21,14 @@ class RabbitMqConsumer(AbstractRabbitMqClient, AsyncMessageConsumerInterface):
             blocking_channel.basic_ack(delivery_tag=deliver.delivery_tag)
         except Exception as e:
             print(f'Exception risen:\n{e}')
-        finally:
-            blocking_channel.stop_consuming()
+        # finally:
+        #     blocking_channel.stop_consuming()
 
     def set_message_callback(self, callback: Callable[[bytes], None]) -> None:
         self.__received_message_callback = callback
 
     @retry(pika.exceptions.AMQPConnectionError, delay=5, jitter=(1, 3))
-    def receive_message(self) -> None:
+    def start_receiving_messages(self) -> None:
         # Automatically close the connection
         with pika.BlockingConnection(self._parameters) as connection:
             # Automatically close the channel
@@ -47,5 +50,5 @@ class RabbitMqConsumer(AbstractRabbitMqClient, AsyncMessageConsumerInterface):
                     exit(-1)
                 # Don't recover from KeyboardInterrupt
                 except KeyboardInterrupt:
-                    print("[RabbitMqConsumer] Application closed.")
+                    # print("[RabbitMqConsumer] Application closed.")
                     exit(-1)

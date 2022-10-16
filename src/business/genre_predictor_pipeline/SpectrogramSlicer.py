@@ -4,8 +4,9 @@ from socket import socket, AF_INET, SOCK_STREAM
 from typing import Callable
 from PIL import Image
 from config import spectrogram_queue
-from config.constants import ID_FIELD_SIZE, SLICES_NUMBER_BYTES, SLICE_EDGE
-from config.rabbit_mq import SLICES_QUEUE
+from config.constants import SLICES_NUMBER_BYTES, SLICE_EDGE
+from config.genre_computer_request_manager import REQUEST_ID_BYTES_NUMBER
+from config.rabbit_mq import GenreComputationPipeline
 from src.business.abstract_classes.AbstractSyncReceivePipelineStage import AbstractSyncReceivePipelineStage
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 from src.helpers.RabbitMqProducer import RabbitMqProducer
@@ -14,7 +15,8 @@ from src.helpers.RabbitMqProducer import RabbitMqProducer
 class SpectrogramSlicer(AbstractSyncReceivePipelineStage):
     def __init__(self, name: str = 'SpectrogramSlicer', log_func: Callable[[str], None] = print):
         super().__init__(name, log_func)
-        self.__message_sender = RabbitMqProducer(SLICES_QUEUE.exchange, SLICES_QUEUE.routing_key)
+        self.__message_sender = RabbitMqProducer(GenreComputationPipeline.SLICES_QUEUE.exchange,
+                                                 GenreComputationPipeline.SLICES_QUEUE.routing_key)
         self._log_func(f'[{self._name}] Microservice started!')
 
     def _receive_message(self) -> bytes:
@@ -23,20 +25,20 @@ class SpectrogramSlicer(AbstractSyncReceivePipelineStage):
         return client_socket.receive_message()
 
     def _process_message(self, message: bytes) -> bytes:
-        song_id = message[:ID_FIELD_SIZE]
-        slice_index = message[ID_FIELD_SIZE:ID_FIELD_SIZE + SLICES_NUMBER_BYTES]
+        request_id = message[:REQUEST_ID_BYTES_NUMBER]
+        slice_index = message[REQUEST_ID_BYTES_NUMBER:REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES]
         slice_index = int.from_bytes(slice_index, 'big', signed=False)
-        spectrogram = message[ID_FIELD_SIZE + SLICES_NUMBER_BYTES:]
+        spectrogram = message[REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES:]
         spectrogram_len = len(spectrogram)
         spectrogram = self.__slice_spectrogram(spectrogram, slice_index)
         self._log_func(f'[{self._name}] Slice created:'
                        f'\n\tReceived message bytes: {len(message)}'
-                       f'\n\tSongID: {song_id}'
+                       f'\n\tRequestID: {request_id}'
                        f'\n\tSliceIndex: {slice_index}'
                        f'\n\tSpectrogram bytes: {spectrogram_len}'
                        f'\n\tSlice bytes: {len(spectrogram)}'
-                       f'\n\tSent message bytes: {len(song_id) + len(spectrogram)}')
-        return song_id + spectrogram
+                       f'\n\tSent message bytes: {len(request_id) + len(spectrogram)}')
+        return request_id + spectrogram
 
     def _send_message(self, message: bytes) -> None:
         self.__message_sender.send_message(message)
@@ -63,17 +65,17 @@ class DebugSpectrogramSlicer(SpectrogramSlicer):
         self.__output_dir = output_dir
 
     def _process_message(self, message: bytes) -> bytes:
-        slice_index = message[ID_FIELD_SIZE:ID_FIELD_SIZE + SLICES_NUMBER_BYTES]
+        slice_index = message[REQUEST_ID_BYTES_NUMBER:REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES]
         slice_index = int.from_bytes(slice_index, 'big', signed=False)
         with open(os.path.join(self.__output_dir, 'Spectrogram Slicer - Spectrogram.png'), 'wb') as f:
-            f.write(message[ID_FIELD_SIZE + SLICES_NUMBER_BYTES:])
+            f.write(message[REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES:])
         message = super()._process_message(message)
         with open(os.path.join(self.__output_dir,
                                'Spectrogram Slicer - Slices', f'Slice {slice_index}.png'), 'wb') as f:
-            f.write(message[ID_FIELD_SIZE:])
+            f.write(message[REQUEST_ID_BYTES_NUMBER:])
         return message
 
 
 if __name__ == '__main__':
     # SpectrogramSlicer().run()
-    DebugSpectrogramSlicer('../../debug_files/').run()
+    DebugSpectrogramSlicer('../../../debug_files/').run()

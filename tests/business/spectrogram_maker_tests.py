@@ -1,10 +1,8 @@
 import shlex
 from io import BytesIO
-from multiprocessing import Pipe
 from subprocess import Popen, PIPE
-import sox
 from pydub import AudioSegment
-from src.business.SpectrogramMaker import SpectrogramMaker
+from src.business.genre_predictor_pipeline.SpectrogramMaker import SpectrogramMaker
 from mutagen.mp3 import MP3, MPEGInfo
 
 

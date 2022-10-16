@@ -5,7 +5,7 @@ from src.business.abstract_classes.AbstractPipelineStage import AbstractPipeline
 
 class AbstractAsyncReceivePipelineStage(AbstractPipelineStage):
     @abstractmethod
-    def _receive_message(self) -> None:
+    def _start_receiving_messages(self) -> None:
         pass
 
     def _on_received_message(self, message: bytes) -> None:
@@ -13,5 +13,4 @@ class AbstractAsyncReceivePipelineStage(AbstractPipelineStage):
         self._send_message(message)
 
     def run(self) -> None:
-        while True:
-            self._receive_message()
+        self._start_receiving_messages()

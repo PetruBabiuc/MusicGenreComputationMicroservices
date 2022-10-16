@@ -4,7 +4,8 @@ from socket import socket, AF_INET, SOCK_STREAM
 from typing import Callable
 from PIL import Image
 from config import spectrogram_filter, spectrogram_queue, slice_genre_aggregator
-from config.constants import ID_FIELD_SIZE, SLICE_EDGE, SLICES_NUMBER_BYTES
+from config.constants import SLICE_EDGE, SLICES_NUMBER_BYTES
+from config.genre_computer_request_manager import REQUEST_ID_BYTES_NUMBER
 from src.business.abstract_classes.AbstractSyncReceivePipelineStage import AbstractSyncReceivePipelineStage
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 
@@ -26,23 +27,23 @@ class SpectrogramFilter(AbstractSyncReceivePipelineStage):
         return message
 
     def _process_message(self, message: bytes) -> bytes:
-        song_id = message[:ID_FIELD_SIZE]
-        spectrogram = message[ID_FIELD_SIZE:]
+        request_id = message[:REQUEST_ID_BYTES_NUMBER]
+        spectrogram = message[REQUEST_ID_BYTES_NUMBER:]
         slices_number = self.__get_slices_number(spectrogram)
         slices_number_bytes = slices_number.to_bytes(SLICES_NUMBER_BYTES, 'big', signed=False)
         self._log_func(f'[{self._name}] Received and processed message:'
                        f'\n\tReceived message length: {len(message)}'
-                       f'\n\tSongID: {song_id}'
+                       f'\n\tRequestID: {request_id}'
                        f'\n\tSpectrogram length: {len(spectrogram)}'
                        f'\n\tSlices number: {slices_number}'
-                       f'\n\tSent message to SliceGenreAggregator length: {len(song_id) + len(slices_number_bytes)}'
+                       f'\n\tSent message to SliceGenreAggregator length: {len(request_id) + len(slices_number_bytes)}'
                        f'\n\tSent message to SpectrogramQueue length: {len(message) + len(slices_number_bytes)}')
-        return song_id + slices_number_bytes + spectrogram
+        return request_id + slices_number_bytes + spectrogram
 
     def _send_message(self, message: bytes) -> None:
         client_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
         client_socket.connect((slice_genre_aggregator.HOST, slice_genre_aggregator.SLICE_NUMBER_PORT))
-        client_socket.send_message(message[:ID_FIELD_SIZE + SLICES_NUMBER_BYTES])
+        client_socket.send_message(message[:REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES])
         client_socket.close()
 
         client_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
@@ -69,7 +70,7 @@ class DebugSpectrogramFilter(SpectrogramFilter):
         self.__output_dir = output_dir
 
     def _process_message(self, message: bytes) -> bytes:
-        spectrogram = message[ID_FIELD_SIZE:]
+        spectrogram = message[REQUEST_ID_BYTES_NUMBER:]
         with open(os.path.join(self.__output_dir, 'SpectrogramFilter - Spectrogram.png'), 'wb') as f:
             f.write(spectrogram)
 
@@ -78,5 +79,5 @@ class DebugSpectrogramFilter(SpectrogramFilter):
 
 
 if __name__ == '__main__':
-    DebugSpectrogramFilter('../../debug_files/').run()
+    DebugSpectrogramFilter('../../../debug_files/').run()
     # SpectrogramFilter().run()

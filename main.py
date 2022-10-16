@@ -2,13 +2,16 @@ from dataclasses import dataclass
 from multiprocessing import Process
 from time import sleep
 from typing import Any
-from src.business.SliceDataProcessor import SliceDataProcessor
-from src.business.SliceGenreAggregator import SliceGenreAggregator
-from src.business.SliceGenrePredictor import DebugSliceGenrePredictor, SliceGenrePredictor
-from src.business.SpectrogramFilter import DebugSpectrogramFilter, SpectrogramFilter
-from src.business.SpectrogramMaker import DebugSpectrogramMaker, SpectrogramMaker
-from src.business.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
-from src.business.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
+
+from src.business.GenreComputerRequestManager import GenreComputerRequestManager
+from src.business.crawler.SongGenreObtainer import SongGenreObtainer
+from src.business.genre_predictor_pipeline.SliceDataProcessor import SliceDataProcessor
+from src.business.genre_predictor_pipeline.SliceGenreAggregator import SliceGenreAggregator
+from src.business.genre_predictor_pipeline.SliceGenrePredictor import DebugSliceGenrePredictor, SliceGenrePredictor
+from src.business.genre_predictor_pipeline.SpectrogramFilter import DebugSpectrogramFilter, SpectrogramFilter
+from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrogramMaker, SpectrogramMaker
+from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
+from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
 from src.presentation.Controller import DebugController, Controller
 
 
@@ -29,29 +32,48 @@ if __name__ == '__main__':
     dnn_path = 'dnn/musicDNN.tflearn'
     debug = False
 
-    # The following microservices open ServerSocket(s) => Instantiate once at most:
-    # Controller, SpectrogramFilter, SpectrogramQueue, SliceGenreAggregator
+    # The following microservices open one or more ServerSocket => Instantiate once at most:
+    # Controller, SpectrogramFilter, SpectrogramQueue, SliceGenreAggregator,
+    # SongGenreObtainer, GenreComputerRequestManager
     if debug:
         microservices_info = (
+            # Presentation
             ReplicationInfo(DebugController, 1, 'Controller', (output_dir,)),
+
+            # Logic business
+            ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
+
+            # Logic business -> Genre computation pipeline
             ReplicationInfo(DebugSpectrogramMaker, 1, 'SpectrogramMaker', (output_dir,)),
             ReplicationInfo(DebugSpectrogramFilter, 1, 'SpectrogramFilter', (output_dir,)),
             ReplicationInfo(DebugSpectrogramQueue, 1, 'SpectrogramQueue', (output_dir,)),
             ReplicationInfo(DebugSpectrogramSlicer, 1, 'SpectrogramSlicer', (output_dir,)),
             ReplicationInfo(DebugSliceGenrePredictor, 1, 'SliceGenrePredictor', (dnn_path, output_dir)),
             ReplicationInfo(SliceDataProcessor, 1, 'SliceDataProcessor', ()),
-            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ())
+            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
+
+            # Logic business -> Crawler
+            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ())
         )
     else:
         microservices_info = (
+            # Presentation
             ReplicationInfo(Controller, 1, 'Controller', ()),
+
+            # Logic business
+            ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
+
+            # Logic business -> Genre computation pipeline
             ReplicationInfo(SpectrogramMaker, 3, 'SpectrogramMaker', ()),
             ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
             ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
             ReplicationInfo(SpectrogramSlicer, 3, 'SpectrogramSlicer', ()),
             ReplicationInfo(SliceGenrePredictor, 3, 'SliceGenrePredictor', (dnn_path,)),
             ReplicationInfo(SliceDataProcessor, 3, 'SliceDataProcessor', ()),
-            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ())
+            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
+
+            # Logic business -> Crawler
+            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ())
         )
 
     processes = []

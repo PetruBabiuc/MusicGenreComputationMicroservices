@@ -4,7 +4,7 @@ from typing import Callable
 
 class AsyncMessageConsumerInterface(metaclass=ABCMeta):
     @abstractmethod
-    def receive_message(self) -> None:
+    def start_receiving_messages(self) -> None:
         pass
 
     @abstractmethod

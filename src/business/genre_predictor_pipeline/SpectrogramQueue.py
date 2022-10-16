@@ -4,7 +4,8 @@ from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 from typing import Callable
 from config import spectrogram_queue
-from config.constants import ID_FIELD_SIZE, SLICES_NUMBER_BYTES
+from config.constants import SLICES_NUMBER_BYTES
+from config.genre_computer_request_manager import REQUEST_ID_BYTES_NUMBER
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 
@@ -29,15 +30,15 @@ class SpectrogramQueue(AbstractMicroservice):
     def __handle_get_clients(self) -> None:
         try:
             while True:
-                song_id, slice_index, spectrogram = self.__queue.get()
+                request_id, slice_index, spectrogram = self.__queue.get()
                 client_socket, addr = self.__get_server_socket.accept()
-                message = song_id + slice_index + spectrogram
+                message = request_id + slice_index + spectrogram
 
                 slice_index = int.from_bytes(slice_index, 'big', signed=False)
 
                 self._log_func(f'[{self._name}] GET:'
                                f'\n\tClient: {addr}'
-                               f'\n\tSongID: {song_id}'
+                               f'\n\tRequestID: {request_id}'
                                f'\n\tSliceIndex: {slice_index}'
                                f'\n\tSpectrogram bytes: {len(spectrogram)}')
                 Thread(target=client_socket.send_message, args=(message,)).start()
@@ -53,16 +54,16 @@ class SpectrogramQueue(AbstractMicroservice):
             self.__get_server_socket.close()
 
     def _put_message(self, message: bytes, addr: tuple[str, int]) -> None:
-        slices_number = message[ID_FIELD_SIZE:ID_FIELD_SIZE + SLICES_NUMBER_BYTES]
+        slices_number = message[REQUEST_ID_BYTES_NUMBER:REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES]
         slices_number = int.from_bytes(slices_number, 'big', signed=False)
-        song_id = message[:ID_FIELD_SIZE]
-        spectrogram = message[ID_FIELD_SIZE + SLICES_NUMBER_BYTES:]
+        request_id = message[:REQUEST_ID_BYTES_NUMBER]
+        spectrogram = message[REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES:]
         for slice_index in range(slices_number):
             slice_index = slice_index.to_bytes(SLICES_NUMBER_BYTES, 'big', signed=False)
-            self.__queue.put((song_id, slice_index, spectrogram))
+            self.__queue.put((request_id, slice_index, spectrogram))
         self._log_func(f'[{self._name}] PUT:'
                        f'\n\tClient: {addr}'
-                       f'\n\tSongID: {song_id}'
+                       f'\n\tRequestID: {request_id}'
                        f'\n\tSlices number: {slices_number}'
                        f'\n\tSpectrogram bytes: {len(spectrogram)}')
 
@@ -84,7 +85,7 @@ class DebugSpectrogramQueue(SpectrogramQueue):
         self.__output_dir = output_dir
 
     def _put_message(self, message: bytes, addr: tuple[str, int]) -> None:
-        spectrogram = message[ID_FIELD_SIZE + SLICES_NUMBER_BYTES:]
+        spectrogram = message[REQUEST_ID_BYTES_NUMBER + SLICES_NUMBER_BYTES:]
         with open(os.path.join(self.__output_dir, 'SpectrogramQueue - Spectrogram.png'), 'wb') as f:
             f.write(spectrogram)
         super()._put_message(message, addr)
@@ -92,4 +93,4 @@ class DebugSpectrogramQueue(SpectrogramQueue):
 
 if __name__ == '__main__':
     # SpectrogramQueue().run()
-    DebugSpectrogramQueue('../../debug_files/').run()
+    DebugSpectrogramQueue('../../../debug_files/').run()

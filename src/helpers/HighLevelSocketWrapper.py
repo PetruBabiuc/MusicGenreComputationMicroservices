@@ -2,6 +2,8 @@ from __future__ import annotations
 import json
 import os.path
 from socket import socket, error as socket_error
+from typing import Any
+
 from src.helpers.abstract_classes.MessageProducerInterface import MessageProducerInterface
 from src.helpers.abstract_classes.SyncMessageConsumerInterface import SyncMessageConsumerInterface
 
@@ -47,12 +49,12 @@ class HighLevelSocketWrapper(SyncMessageConsumerInterface, MessageProducerInterf
             received_bytes.extend(block)
         return bytes(received_bytes)
 
-    def send_dict_as_json(self, _dict: dict) -> None:
+    def send_dict_as_json(self, _dict: dict[str, Any]) -> None:
         message = json.dumps(_dict)
         message = message.encode()
         self.send_message(message)
 
-    def receive_json_as_dict(self) -> dict:
+    def receive_json_as_dict(self) -> dict[str, Any]:
         message = self.receive_message()
         message = message.decode()
         message = json.loads(message)
