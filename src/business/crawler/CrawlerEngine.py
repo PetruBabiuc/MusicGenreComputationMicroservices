@@ -27,11 +27,11 @@ class CrawlerEngine(AbstractMicroservice):
     def __handle_controller_request(self, client_socket: HighLevelSocketWrapper) -> None:
         message = client_socket.receive_json_as_dict()
 
-
         result = None
+        client_id = message['client_id']
 
         if message['operation'] == 'get_song':
-            self.__get_song(message['client_id'])
+            self.__get_song(client_id, message['genre'])
 
         self._log_func(f'[{self._name}] Controller request:'
                        f'\n\tRequest: {message}'
@@ -54,8 +54,9 @@ class CrawlerEngine(AbstractMicroservice):
         client_socket.close()
         return result
 
-
     def __get_song(self, client_id: int, genre: str) -> None:
-        state = self.__call_repository('get_state', client_id, True)
+        message = {
+            'client_id': client_id,
+        }
 
         # TODO...

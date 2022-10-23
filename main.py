@@ -4,6 +4,7 @@ from time import sleep
 from typing import Any
 
 from src.business.GenreComputerRequestManager import GenreComputerRequestManager
+from src.business.crawler.Mp3ProcessorMicroservice import Mp3ProcessorMicroservice
 from src.business.crawler.SongGenreObtainer import SongGenreObtainer
 from src.business.genre_predictor_pipeline.SliceDataProcessor import SliceDataProcessor
 from src.business.genre_predictor_pipeline.SliceGenreAggregator import SliceGenreAggregator
@@ -53,7 +54,8 @@ if __name__ == '__main__':
             ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 
             # Logic business -> Crawler
-            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ())
+            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
+            ReplicationInfo(Mp3ProcessorMicroservice, 1, 'Mp3Processor', ())
         )
     else:
         microservices_info = (
@@ -73,7 +75,8 @@ if __name__ == '__main__':
             ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 
             # Logic business -> Crawler
-            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ())
+            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
+            ReplicationInfo(Mp3ProcessorMicroservice, 3, 'Mp3Processor', ()),
         )
 
     processes = []
