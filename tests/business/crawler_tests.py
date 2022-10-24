@@ -88,7 +88,7 @@ def test4():
         'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/raw_30s_audio-04.tar',
         'https://cdn.freesound.org/mtg-jamendo/'
     ]
-    bloom_filter = BloomFilter(100000, 0.1, 'bloomfilter')
+    bloom_filter = BloomFilter(BLOOM_FILTER_CAPACITY, BLOOM_FILTER_ERROR_RATE, 'bloomfilter')
     for url in to_add:
         bloom_filter.add(url)
     serialized = bloom_filter.to_base64()
@@ -223,4 +223,4 @@ def test10():
 
 
 if __name__ == '__main__':
-    test10()
+    test4()

@@ -1,0 +1,13 @@
+USE licenta;
+DROP TABLE song_urls;
+DROP TABLE resources_urls;
+DROP TABLE crawler_states;
+DROP TABLE bills;
+DROP TABLE users_to_services;
+DROP TABLE services;
+DROP TABLE song_info;
+DROP TABLE songs;
+DROP TABLE formats;
+DROP TABLE song_genres;
+DROP TABLE users;
+DROP TABLE user_types;
