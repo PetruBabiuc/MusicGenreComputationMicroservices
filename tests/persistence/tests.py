@@ -1,3 +1,5 @@
+from config import database
+from src.helpers.MariaDbDatabaseManager import MariaDbDatabaseManager
 from src.persistence.DatabaseManagerStub import DatabaseManagerStub
 
 
@@ -13,6 +15,18 @@ def test1():
     genre = db.get_song_genre(new_song_name)
     pass
 
+def test2():
+    db_man = MariaDbDatabaseManager(database.USER, database.PASSWORD,
+                                    database.DATABASE, database.DB_HOST, database.DB_PORT)
+    users = db_man.query('SELECT * FROM users;')
+    pass
+
+def test3():
+    db_man = MariaDbDatabaseManager(database.USER, database.PASSWORD,
+                                    database.DATABASE, database.DB_HOST, database.DB_PORT)
+    new_id = db_man.insert("INSERT INTO users VALUES(DEFAULT, ?, ?, ?, ?);", ('petru', 'petru', 2, True))
+    users = db_man.query('SELECT * FROM users;')
+    pass
 
 if __name__ == '__main__':
-    test1()
+    test3()

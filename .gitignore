@@ -136,3 +136,4 @@ dmypy.json
 dnn/*
 .idea
 *.raw
+!Diagrama *.png

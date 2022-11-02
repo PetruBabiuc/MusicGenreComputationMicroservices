@@ -5,12 +5,14 @@ CREATE TABLE licenta.user_types (
 );
 
 CREATE TABLE licenta.users (
-	user_id INT auto_increment NULL,
-	user_name VARCHAR(100) NOT NULL,
-	password VARCHAR(100) NOT NULL,
-	user_type_id INT NOT NULL,
-	CONSTRAINT users_PK PRIMARY KEY (user_id),
-	CONSTRAINT users_FK FOREIGN KEY (user_type_id) REFERENCES licenta.user_types(user_type_id) ON DELETE CASCADE ON UPDATE CASCADE
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_name` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `user_type_id` int(11) NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  PRIMARY KEY (`user_id`),
+  KEY `users_FK` (`user_type_id`),
+  CONSTRAINT `users_FK` FOREIGN KEY (`user_type_id`) REFERENCES `user_types` (`user_type_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE licenta.song_genres (
@@ -36,12 +38,10 @@ CREATE TABLE licenta.songs (
 );
 
 CREATE TABLE licenta.song_info (
-	song_info_id INT auto_increment NULL,
 	song_id INT NOT NULL,
-	original_format_id INT NULL,
 	author varchar(100) NULL,
-	CONSTRAINT song_info_PK PRIMARY KEY (song_info_id),
-	CONSTRAINT song_info_UN UNIQUE KEY (song_id),
+	original_format_id INT NULL,
+	CONSTRAINT song_info_PK PRIMARY KEY (song_id),
 	CONSTRAINT song_info_FK FOREIGN KEY (original_format_id) REFERENCES licenta.formats(format_id) ON DELETE SET NULL ON UPDATE SET NULL
 );
 
@@ -54,11 +54,10 @@ CREATE TABLE licenta.services (
 );
 
 CREATE TABLE licenta.users_to_services (
-	join_id INT auto_increment NULL,
 	user_id INT NOT NULL,
 	service_id INT NOT NULL,
-	quantity INT DEFAULT 0 NOT NULL,
-	CONSTRAINT users_to_services_PK PRIMARY KEY (join_id),
+	quantity FLOAT DEFAULT 0 NOT NULL,
+	CONSTRAINT users_to_services_PK PRIMARY KEY (user_id,service_id),
 	CONSTRAINT users_to_services_user_id_FK FOREIGN KEY (user_id) REFERENCES licenta.users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
 	CONSTRAINT users_to_services_service_id_FK FOREIGN KEY (service_id) REFERENCES licenta.services(service_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -74,30 +73,32 @@ CREATE TABLE licenta.bills (
 );
 
 CREATE TABLE licenta.crawler_states (
-	crawler_state_id INT auto_increment NULL,
-	user_id INT NULL,
-	`domain` VARCHAR(100) NOT NULL,
-	desired_genre_id INT NOT NULL,
-	bloom_filter varchar(10000) NULL,
-	CONSTRAINT crawler_states_PK PRIMARY KEY (crawler_state_id),
-	CONSTRAINT crawler_states_user_id_FK FOREIGN KEY (user_id) REFERENCES licenta.users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT crawler_states_desired_genre_id_FK FOREIGN KEY (desired_genre_id) REFERENCES licenta.song_genres(song_genre_id) ON DELETE CASCADE ON UPDATE CASCADE
+  `user_id` int(11) NOT NULL,
+  `desired_genre_id` int(11) NOT NULL,
+  `domain` varchar(100) NOT NULL,
+  `bloom_filter` varchar(10000) DEFAULT NULL,
+  `max_crawled_resources` int(11) DEFAULT NULL,
+  `max_computed_genres` int(11) NOT NULL DEFAULT 0,
+  `finished` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `crawler_states_desired_genre_id_FK` FOREIGN KEY (`desired_genre_id`) REFERENCES `song_genres` (`song_genre_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `crawler_states_user_id_FK` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE licenta.resources_urls (
 	resource_url_id INT auto_increment NULL,
 	resource_url varchar(100) NOT NULL,
-	crawler_state_id INT NOT NULL,
+	user_id INT NOT NULL,
 	CONSTRAINT resources_urls_PK PRIMARY KEY (resource_url_id),
-	CONSTRAINT resources_urls_FK FOREIGN KEY (crawler_state_id) REFERENCES licenta.crawler_states(crawler_state_id) ON DELETE CASCADE ON UPDATE CASCADE
+	CONSTRAINT resources_urls_FK FOREIGN KEY (user_id) REFERENCES licenta.crawler_states(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE licenta.song_urls (
 	song_url_id INT auto_increment NULL,
 	song_url varchar(100) NOT NULL,
-	crawler_state_id INT NOT NULL,
+	user_id INT NOT NULL,
 	genre_id INT NOT NULL,
 	CONSTRAINT song_urls_PK PRIMARY KEY (song_url_id),
-	CONSTRAINT song_urls_FK FOREIGN KEY (crawler_state_id) REFERENCES licenta.crawler_states(crawler_state_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT song_urls_FK FOREIGN KEY (user_id) REFERENCES licenta.crawler_states(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
 	CONSTRAINT song_urls_FK_1 FOREIGN KEY (genre_id) REFERENCES licenta.song_genres(song_genre_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

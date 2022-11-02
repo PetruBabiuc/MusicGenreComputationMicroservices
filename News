@@ -1,10 +1,4 @@
-Crawler update
-- Implemented, tested and integrated the following microservices:
-    - Spiders
-    - SongUrlProcessor
-- Still in development:
-    - Repository (or repositories if creating a separate one for the crawler)
-    - DomainRequestScheduler
-    - CrawlerEngine
-- Implemented simple Selenium resource obtainer (simply awaits some time for the JS to dynamically update the page then gets the HTML)
-- Updated ER and Microservice diagrams
+- Created and integrated database API
+- Updated diagrams. Also, they are in PNG format now
+- Updated controller messages flow (more details in microservices diagrams)
+- Implemented CrawlerEngine (not yet integrated nor tested)

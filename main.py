@@ -13,6 +13,7 @@ from src.business.genre_predictor_pipeline.SpectrogramFilter import DebugSpectro
 from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrogramMaker, SpectrogramMaker
 from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
 from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
+from src.persistence.DatabaseAPI import DatabaseAPI
 from src.presentation.Controller import DebugController, Controller
 
 
@@ -58,7 +59,11 @@ if __name__ == '__main__':
             ReplicationInfo(Mp3ProcessorMicroservice, 1, 'Mp3Processor', ())
         )
     else:
+        instances_number = 2
         microservices_info = (
+            # Persistence
+            ReplicationInfo(DatabaseAPI, 1, 'DatabaseAPI', ()),
+
             # Presentation
             ReplicationInfo(Controller, 1, 'Controller', ()),
 
@@ -66,17 +71,17 @@ if __name__ == '__main__':
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
 
             # Logic business -> Genre computation pipeline
-            ReplicationInfo(SpectrogramMaker, 3, 'SpectrogramMaker', ()),
+            ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
             ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
             ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
-            ReplicationInfo(SpectrogramSlicer, 3, 'SpectrogramSlicer', ()),
-            ReplicationInfo(SliceGenrePredictor, 3, 'SliceGenrePredictor', (dnn_path,)),
-            ReplicationInfo(SliceDataProcessor, 3, 'SliceDataProcessor', ()),
+            ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
+            ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
+            ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
             ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 
             # Logic business -> Crawler
-            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
-            ReplicationInfo(Mp3ProcessorMicroservice, 3, 'Mp3Processor', ()),
+            # ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
+            # ReplicationInfo(Mp3ProcessorMicroservice, 3, 'Mp3Processor', ()),
         )
 
     processes = []

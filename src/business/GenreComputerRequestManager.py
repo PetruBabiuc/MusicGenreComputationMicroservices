@@ -3,8 +3,11 @@ from threading import Thread
 from typing import Callable, Any
 from uuid import uuid4
 
+import requests
+
 import config.crawler_genre_obtainer as crawler
-from config import controller, primary_database
+from config import controller
+from config.database import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, USERS_TO_SERVICES_PATH, SERVICES_PATH
 from config.genre_computer_request_manager import HOST, REQUESTS_PORT, RESULTS_PORT
 from config.rabbit_mq import GenreComputationPipeline
 from src.AbstractMicroservice import AbstractMicroservice
@@ -27,6 +30,16 @@ class GenreComputerRequestManager(AbstractMicroservice):
         self.__results_socket.bind((HOST, RESULTS_PORT))
         self.__results_socket.listen()
         self._log_func(f'[{self._name}] ServerSocket for requests opened on {HOST}:{RESULTS_PORT}...')
+
+        # Caching information about genres
+        genres = requests.get(API_URL_PREFIX + SONG_GENRES_PATH).json()
+        self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
+
+        # Caching information about 'genre_computation' service ID
+        for service in requests.get(API_URL_PREFIX + SERVICES_PATH).json():
+            if service['service_name'] == 'genre_computation':
+                self.__genre_computation_service_id = service['service_id']
+                break
 
         self.__song_sender = RabbitMqProducer(GenreComputationPipeline.SONGS_QUEUE.exchange,
                                               GenreComputationPipeline.SONGS_QUEUE.routing_key)
@@ -60,14 +73,31 @@ class GenreComputerRequestManager(AbstractMicroservice):
             con, addr = self.__requests_socket.accept()
             Thread(target=self.__forward_request, args=(con, addr)).start()
 
-    @staticmethod
-    def __route_response_to_db(result: dict[str, Any]) -> None:
-        return
-        # result['operation'] = 'update_song_genre'
-        # con = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
-        # con.connect((primary_database.HOST, primary_database.PORT))
-        # con.send_dict_as_json(result)
-        # con.close()
+    def __update_database(self, result: dict[str, Any]) -> None:
+        if result['source'] == 'Controller':
+            # Updating song's genre
+            genre_id = self.__genre_name_to_id[result['genre']]
+            song_id = result['song_id']
+            requests.patch(API_URL_PREFIX + SONGS_PATH, params={'song_id': song_id}, json={'genre_id': genre_id})
+
+            user_id = requests.get(API_URL_PREFIX + SONGS_PATH, params={'song_id': song_id}).json()[0]['user_id']
+
+        elif result['source'] == 'Crawler':
+            user_id = result['client_id']
+        else:
+            return  # This should not be possible, only sources are Crawler and Controller
+
+        # Updating user's 'genre_computation' service quantity
+        quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            'user_id': user_id,
+            'service_id': self.__genre_computation_service_id
+        }).json()[0]['quantity']
+        requests.patch(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            'user_id': user_id,
+            'service_id': self.__genre_computation_service_id
+        }, json={
+            'quantity': quantity + 1
+        })
 
     def __route_response(self, con: HighLevelSocketWrapper, addr: tuple[str, int]) -> None:
         message = con.receive_json_as_dict()
@@ -85,14 +115,13 @@ class GenreComputerRequestManager(AbstractMicroservice):
                        f'\n\tParent request: {request_info}')
 
         source = request_info['source']
-        del request_info['source']
         result = request_info
         result['genre'] = message['genre']
 
-        if source == 'Controller':
-            self.__route_response_to_db(result)
-            self.__route_dict_response_as_json(controller.HOST, controller.GENRE_COMPUTATION_PORT, result)
+        self.__update_database(result)
 
+        if source == 'Controller':
+            self.__route_dict_response_as_json(controller.HOST, controller.GENRE_COMPUTATION_PORT, result)
         elif source == 'Crawler':
             self.__route_dict_response_as_json(crawler.HOST, crawler.COMPUTATION_RESULTS_PORT, result)
 

@@ -3,8 +3,12 @@ from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 from typing import Callable, Any
 
+import requests
+
 from config import constants, controller, genre_computer_request_manager
+from config.database import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH
 from src.AbstractMicroservice import AbstractMicroservice
+from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 from src.helpers.SocketJsonMessageAwaiter import SocketJsonMessageAwaiter
 from src.helpers.SynchronizedDict import SynchronizedDict
@@ -28,63 +32,48 @@ class Controller(AbstractMicroservice):
         self._log_func(f'[{self._name}] ServerSocket for computation results '
                        f'opened on {controller.HOST}:{controller.GENRE_COMPUTATION_PORT}!')
 
-        self.__db_manager = DatabaseManagerStub()
+        # Caching information about genres
+        genres = requests.get(API_URL_PREFIX + SONG_GENRES_PATH).json()
+        self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
+
         self.__song_id_to_awaitable_result_package: SynchronizedDict[int, AwaitableResult[dict[str, Any]]] = \
             SynchronizedDict()
 
-        # Temporary :(
-        self.__song_id_to_awaitable_result_package['id'] = 0
-
     def __serve_client(self, client_socket: HighLevelSocketWrapper, addr) -> None:
         message = client_socket.receive_json_as_dict()
-        song_name = message['song_name']
+        operation = message['operation']
 
-        # TODO: Get genre from DB
-        # with self.__db_manager as db_manager:
-        #     genre = db_manager.get_song_genre(song_name)
+        if operation == 'compute_genre':
+            self.__handle_genre_computation_request(client_socket, message)
 
-        genre = None
+        client_socket.close()
 
-        self._log_func(f'[{self._name}] Genre of the song {song_name} requested by {addr}: {genre}')
-        message = {'genre': genre}
-        client_socket.send_dict_as_json(message)
+    def __handle_genre_computation_request(self, client_socket: HighLevelSocketWrapper,
+                                           message: dict[str, Any]) -> None:
+        # TODO: get client_id from session (here or in the React/Angular frontend proxy)
+        client_id = message['client_id']
 
-        # Song's genre already computed
-        if genre is not None:
-            self._log_func(f"[{self._name}] {addr}'s song's genre already computed => Done!")
-            client_socket.close()
-            return
+        # Inserting song row in the DB
+        genre_id = self.__genre_name_to_id['Computing...']
+        response = requests.post(API_URL_PREFIX + SONGS_PATH, json={
+            'user_id': client_id,
+            'song_name': message['song_name'],
+            'genre_id': genre_id
+        }).json()
+        song_id = response['song_id']
 
-        # Song's genre will be computed
-        self._log_func(f"[{self._name}] Waiting {addr}'s song bytes...")
-        message = client_socket.receive_message()
-        self._log_func(f"[{self._name}] {addr}'s song bytes: {len(message)}")
-
-        # TODO: Insert new database entry
-        # Creating new database entry
-        # with self.__db_manager as db_manager:
-        #     song_id = db_manager.insert_song_data_row(song_name)
-
-        # Temporary :(
-        with self.__song_id_to_awaitable_result_package as sync_dict:
-            song_id = sync_dict['id']
-            sync_dict['id'] += 1
-        # song_id = random.randint(0, 10_000)
+        song = message['song']
+        song = Base64Converter.string_to_bytes(song)
 
         self.__results_awaiter.put_awaitable(song_id)
 
         # Sending song for genre computation
-        self._compute_song_genre(song_id, message)
+        self._compute_song_genre(song_id, song)
 
         # Awaiting genre computation
         message = self.__results_awaiter.await_result(song_id)
 
-        # TODO: To remove, this is GenreComputerRequestManager's functionality
-        # with self.__db_manager as db_manager:
-        #     db_manager.update_song_genre(song_id, message['genre'])
-
         client_socket.send_dict_as_json(message)
-        client_socket.close()
 
     def _compute_song_genre(self, song_id: int, song_bytes: bytes) -> None:
         message = song_id.to_bytes(constants.ID_FIELD_SIZE, 'big')

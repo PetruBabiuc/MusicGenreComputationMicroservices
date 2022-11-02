@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from collections import deque
 from time import sleep
 from typing import Iterable, Callable
 from urllib.parse import urljoin
@@ -78,11 +77,6 @@ class AbstractSpider(metaclass=ABCMeta):
 
             url_to_process = state.queue.pop()
             resources_crawled += 1
-
-            # Check if already traversed when inserting, TODO: DEBUG ONLY, REMOVE
-            # if url_to_process in state.bloom_filter:
-            #     continue
-            # state.bloom_filter.add(url_to_process)
 
             self.__domain_request_scheduler(state.domain)
             resource_types = self.__get_resource_types(urljoin(state.domain, url_to_process))
