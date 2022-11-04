@@ -95,10 +95,8 @@ class AbstractSpider(metaclass=ABCMeta):
                     print(f'{resource_processor.__class__.__name__}\tprocessing {url_to_process} '
                           f'=> {url_should_be_processed}, {found_urls}')
 
-        if len(state.queue) == 0:
-            base64_bloom_filter = None
-        else:
-            base64_bloom_filter = state.bloom_filter.to_base64().decode()
+        # Returning the bloom filter either the crawl seems to be completed or not
+        base64_bloom_filter = state.bloom_filter.to_base64().decode()
 
         return SpiderReturn(state.domain, list(state.queue),
                             items_to_process, resources_crawled, base64_bloom_filter)

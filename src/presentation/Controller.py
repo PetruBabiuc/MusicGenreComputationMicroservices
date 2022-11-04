@@ -2,18 +2,19 @@ import os.path
 from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 from typing import Callable, Any
+from urllib.parse import urlparse
 
 import requests
 
-from config import constants, controller, genre_computer_request_manager
-from config.database import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH
+from config import constants, controller, genre_computer_request_manager, crawler_engine
+from config.database_api import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, CRAWLER_STATES_PATH, SONG_URLS_PATH, \
+    RESOURCES_URLS_PATH
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 from src.helpers.SocketJsonMessageAwaiter import SocketJsonMessageAwaiter
 from src.helpers.SynchronizedDict import SynchronizedDict
 from src.model.AwaitableResult import AwaitableResult
-from src.persistence.DatabaseManagerStub import DatabaseManagerStub
 
 
 class Controller(AbstractMicroservice):
@@ -26,8 +27,12 @@ class Controller(AbstractMicroservice):
         self._log_func(f'[{self._name}] ServerSocket for clients '
                        f'opened on {controller.HOST}:{controller.CLIENT_PORT}!')
 
-        self.__results_awaiter: SocketJsonMessageAwaiter[int] = SocketJsonMessageAwaiter(
+        self.__genre_computation_results_awaiter: SocketJsonMessageAwaiter[int] = SocketJsonMessageAwaiter(
             controller.HOST, controller.GENRE_COMPUTATION_PORT, 'song_id')
+
+        self.__crawling_results_awaiter: SocketJsonMessageAwaiter[int] = SocketJsonMessageAwaiter(
+            controller.HOST, controller.CRAWLER_RESPONSES_PORT, 'client_id'
+        )
 
         self._log_func(f'[{self._name}] ServerSocket for computation results '
                        f'opened on {controller.HOST}:{controller.GENRE_COMPUTATION_PORT}!')
@@ -39,12 +44,14 @@ class Controller(AbstractMicroservice):
         self.__song_id_to_awaitable_result_package: SynchronizedDict[int, AwaitableResult[dict[str, Any]]] = \
             SynchronizedDict()
 
-    def __serve_client(self, client_socket: HighLevelSocketWrapper, addr) -> None:
+    def __serve_client(self, client_socket: HighLevelSocketWrapper, addr: tuple[str, int]) -> None:
         message = client_socket.receive_json_as_dict()
         operation = message['operation']
 
         if operation == 'compute_genre':
             self.__handle_genre_computation_request(client_socket, message)
+        elif operation == 'crawl':
+            self.__handle_crawl_request(client_socket, message)
 
         client_socket.close()
 
@@ -65,13 +72,13 @@ class Controller(AbstractMicroservice):
         song = message['song']
         song = Base64Converter.string_to_bytes(song)
 
-        self.__results_awaiter.put_awaitable(song_id)
+        self.__genre_computation_results_awaiter.put_awaitable(song_id)
 
         # Sending song for genre computation
         self._compute_song_genre(song_id, song)
 
         # Awaiting genre computation
-        message = self.__results_awaiter.await_result(song_id)
+        message = self.__genre_computation_results_awaiter.await_result(song_id)
 
         client_socket.send_dict_as_json(message)
 
@@ -95,10 +102,62 @@ class Controller(AbstractMicroservice):
 
     def run(self) -> None:
         try:
-            Thread(target=self.__serve_client_task).start()
-            self.__results_awaiter.start_receiving_responses()
+            Thread(target=self.__crawling_results_awaiter.start_receiving_responses).start()
+            Thread(target=self.__genre_computation_results_awaiter.start_receiving_responses).start()
+            self.__serve_client_task()
         finally:
             self.__client_server_socket.close()
+
+    def __handle_crawl_request(self, client_socket: HighLevelSocketWrapper, message: dict[str, Any]):
+        # TODO: make that a client can have at most one request being handled at once
+        client_id = message['client_id']
+        genre_id = message['genre_id']
+        body = {
+            'max_crawled_resources': message['max_crawled_resources'],
+            'max_computed_genres': message['max_computed_genres'],
+            'desired_genre_id': genre_id
+        }
+        if 'domain' in message:
+            # TODO: Check if domain is a valid URL
+            # Start crawling a new domain
+            parsed_domain = urlparse(message['domain'])
+            body['domain'] = f'{parsed_domain.scheme}://{parsed_domain.netloc}/'
+            # Adding/overwriting crawler state
+            requests.put(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json=body)
+            # Adding seed url
+            requests.post(API_URL_PREFIX + RESOURCES_URLS_PATH, json={
+                'user_id': client_id,
+                'resource_url': parsed_domain.path
+            })
+        else:
+            # New crawling request on the same domain
+            requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json=body)
+
+        self.__crawling_results_awaiter.put_awaitable(client_id)
+
+        # Forwarding the request to the crawler
+        crawler_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
+        crawler_socket.connect((crawler_engine.HOST, crawler_engine.PORT))
+        crawler_socket.send_dict_as_json({'client_id': client_id})
+        crawler_socket.close()
+
+        result = self.__crawling_results_awaiter.await_result(client_id)
+
+        # No song found...
+        if not result['ok']:
+            client_socket.send_dict_as_json(result)
+            return
+
+        # A song was found.
+        # If the client doesn't receive it successfully, the song's url will be stored in the DB.
+        try:
+            client_socket.send_dict_as_json(result)
+        except BaseException:
+            requests.post(API_URL_PREFIX + SONG_URLS_PATH, json={
+                'user_id': client_id,
+                'genre_id': genre_id,
+                'song_url': result['song_url']
+            })
 
 
 class DebugController(Controller):

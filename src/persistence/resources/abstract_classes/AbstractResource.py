@@ -2,14 +2,15 @@ from flask_restful import Resource
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from config import database
+import config.database
+from config import database_api
 
 
 class AbstractResource(Resource):
     def __init__(self):
         engine = create_engine(
-            f'mariadb+mariadbconnector://{database.USER}:{database.PASSWORD}'
-            f'@{database.DB_HOST}:{database.DB_PORT}/{database.DATABASE}')
+            f'mariadb+mariadbconnector://{config.database.USER}:{config.database.PASSWORD}'
+            f'@{config.database.DB_HOST}:{config.database.DB_PORT}/{config.database.DATABASE}')
         self.__session_maker = sessionmaker(bind=engine)
 
     def _create_session(self):

@@ -7,7 +7,7 @@ import requests
 
 import config.crawler_genre_obtainer as crawler
 from config import controller
-from config.database import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, USERS_TO_SERVICES_PATH, SERVICES_PATH
+from config.database_api import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, USERS_TO_SERVICES_PATH, SERVICES_PATH
 from config.genre_computer_request_manager import HOST, REQUESTS_PORT, RESULTS_PORT
 from config.rabbit_mq import GenreComputationPipeline
 from src.AbstractMicroservice import AbstractMicroservice
@@ -119,6 +119,7 @@ class GenreComputerRequestManager(AbstractMicroservice):
         result['genre'] = message['genre']
 
         self.__update_database(result)
+        del result['source']
 
         if source == 'Controller':
             self.__route_dict_response_as_json(controller.HOST, controller.GENRE_COMPUTATION_PORT, result)

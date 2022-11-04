@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import traceback
 from typing import Callable
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
@@ -20,7 +21,8 @@ class RabbitMqConsumer(AbstractRabbitMqClient, AsyncMessageConsumerInterface):
             self.__received_message_callback(message)
             blocking_channel.basic_ack(delivery_tag=deliver.delivery_tag)
         except Exception as e:
-            print(f'Exception risen:\n{e}')
+            print(f'Exception risen while reading from {self.__queue_name}')
+            traceback.print_exc()
         # finally:
         #     blocking_channel.stop_consuming()
 

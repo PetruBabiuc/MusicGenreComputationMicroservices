@@ -1,27 +1,5 @@
-USER = 'petrubabiuc-licenta'
-PASSWORD = 'petrubabiuc1999-licenta'
-DB_HOST = '192.168.56.10'
+USER = 'crud_user'
+PASSWORD = 'crud_user_password'
+DB_HOST = 'localhost'
 DB_PORT = 3306
 DATABASE = 'licenta'
-
-API_HOST = 'localhost'
-API_PORT = 2700
-
-API_URL_PREFIX = f'http://{API_HOST}:{API_PORT}/'
-# RESOURCE_BASE_PATH = '/api/licenta'
-RESOURCE_BASE_PATH = ''
-
-# Users
-USERS_PATH = f'{RESOURCE_BASE_PATH}/users'
-USERS_TO_SERVICES_PATH = f'{RESOURCE_BASE_PATH}/users-to-services'
-SERVICES_PATH = f'{RESOURCE_BASE_PATH}/services'
-
-# Songs
-SONG_GENRES_PATH = f'{RESOURCE_BASE_PATH}/song-genres'
-SONGS_PATH = f'{RESOURCE_BASE_PATH}/songs'
-
-# Crawler paths
-CRAWLER_BASE_PATH = f'{RESOURCE_BASE_PATH}/crawler'
-CRAWLER_STATES_PATH = f'{CRAWLER_BASE_PATH}/states'
-RESOURCES_URLS_PATH = f'{CRAWLER_BASE_PATH}/resources-urls'
-SONG_URLS_PATH = f'{CRAWLER_BASE_PATH}/song-urls'

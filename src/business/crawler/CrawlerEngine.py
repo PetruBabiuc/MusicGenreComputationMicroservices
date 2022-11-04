@@ -10,7 +10,9 @@ import requests
 
 from config import controller
 from config.crawler_engine import HOST as CRAWLER_HOST, PORT as CRAWLER_PORT
-from config.database import SONG_URLS_PATH, SONG_GENRES_PATH, CRAWLER_STATES_PATH, RESOURCES_URLS_PATH, API_URL_PREFIX
+from config.database_api import SONG_URLS_PATH, SONG_GENRES_PATH, CRAWLER_STATES_PATH, RESOURCES_URLS_PATH, \
+    API_URL_PREFIX, \
+    USERS_TO_SERVICES_PATH, SERVICES_PATH
 from config.rabbit_mq import Crawler
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
@@ -27,6 +29,13 @@ class CrawlerEngine(AbstractMicroservice):
         genres = requests.get(API_URL_PREFIX + SONG_GENRES_PATH).json()
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
         self.__genre_id_to_name = {genre['song_genre_id']: genre['song_genre_name'] for genre in genres}
+
+        # Caching information about 'crawled_resource' service
+        services = self.__crawled_resource_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH).json()
+        for service in services:
+            if service['service_name'] == 'crawled_resource':
+                self.__crawled_resource_service_id = service['service_id']
+                break
 
         # Creating RabbitMq producers and consumers
         self.__sender_to_song_url_processors = RabbitMqProducer(Crawler.UrlProcessors.RESTORE_STATE_QUEUE.exchange,
@@ -111,7 +120,14 @@ class CrawlerEngine(AbstractMicroservice):
                 'song_url': song['song_url']
             }
             self.__send_response_to_controller(response)
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: Song found!'
+                           f'\n\tSong URL: {absolute_url}')
             return True
+        self._log_func(f'[{self._name}]'
+                       f'\n\tClientID: {client_id}'
+                       f'\n\tEvent: No song that had the desired genre and that had URL already persisted was found...')
         return False
 
     def __start_computing_song_genres(self, client_id: int, domain: str, genre: str, songs: list[str] = None) -> bool:
@@ -124,6 +140,9 @@ class CrawlerEngine(AbstractMicroservice):
             }).json()
             songs = [it.song_url for it in songs]
         if len(songs) == 0:
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: No song found for genre computation...')
             return False
 
         message = {
@@ -134,14 +153,20 @@ class CrawlerEngine(AbstractMicroservice):
         }
         message = json.dumps(message).encode()
         self.__sender_to_song_url_processors.send_message(message)
+        self._log_func(f'[{self._name}]'
+                       f'\n\tClientID: {client_id}'
+                       f'\n\tEvent: Started genre computation of songs already found'
+                       f'\n\tSongs: {songs}')
         return True
 
-    @staticmethod
-    def __send_response_to_controller(response: dict[str, Any]) -> None:
+    def __send_response_to_controller(self, response: dict[str, Any]) -> None:
         client_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
         client_socket.connect((controller.HOST, controller.CRAWLER_RESPONSES_PORT))
         client_socket.send_dict_as_json(response)
         client_socket.close()
+        self._log_func(f'[{self._name}]'
+                       f'\n\tClientID: {response["client_id"]}'
+                       f'\n\tEvent: Response for controller: {response}')
 
     def __start_crawling(self, client_id: int, domain: str, bloom_filter: str | None,
                          max_crawled_resources: int) -> None:
@@ -157,13 +182,17 @@ class CrawlerEngine(AbstractMicroservice):
         message = {
             'client_id': client_id,
             'domain': domain,
+            'max_crawled_resources': max_crawled_resources
         }
         if len(queue) > 0:
-            message['queue'] = queue
+            message['queue'] = [it['resource_url'] for it in queue]
         if bloom_filter:
             message['bloom_filter'] = bloom_filter
         message = json.dumps(message)
-        self._log_func(f'[{self._name}] Forwarded to spiders:\n\t {message}')
+        self._log_func(f'[{self._name}]'
+                       f'\n\tClientID: {client_id}'
+                       f'\n\tEvent: Forwarded to spiders'
+                       f'\n\tMessage: {message}')
         self.__sender_to_spiders.send_message(message.encode())
 
     def __on_receive_message_from_spiders(self, message: bytes) -> None:
@@ -173,7 +202,8 @@ class CrawlerEngine(AbstractMicroservice):
         songs = message['urls_to_process']
 
         # If there are more resources to be crawled we update the bloom filter.
-        if len(queue) > 0:
+        resources_urls = requests.get(API_URL_PREFIX + RESOURCES_URLS_PATH, params={'user_id': client_id}).json()
+        if len(queue) > 0 or len(resources_urls) > 0:
             requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={
                 'bloom_filter': message['bloom_filter']
             })
@@ -181,11 +211,29 @@ class CrawlerEngine(AbstractMicroservice):
         if len(songs) == 0:
             # Telling controller that no song was found.
             self.__send_response_to_controller({'client_id': client_id, 'ok': False})
-            # If the spiders found neither song urls nor other resources urls, the domain is completely crawled.
-            if len(queue) == 0:
-                requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={
-                    'finished': True
-                })
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: No song found by the spiders...')
+
+            # Checking if the domain is completely crawled
+            # 1. If resources to crawl were found it is not completely crawled
+            if len(queue) != 0:
+                return
+
+            # 2. If there are any other resources to crawl in the DB it is not completely crawled
+            if len(resources_urls) > 0:
+                return
+
+            # 3. If there are any other songs urls in the DB it is not completely crawled
+            if requests.get(API_URL_PREFIX + SONG_URLS_PATH, params={'user_id': client_id}).json():
+                return
+
+            requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={
+                'finished': True
+            })
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: FINISHED CRAWLING THE DOMAIN!')
             return
 
         # Getting desired genre from the persisted crawler state
@@ -201,11 +249,26 @@ class CrawlerEngine(AbstractMicroservice):
                 'resource_url': url
             })
 
-        # TODO: Update users_to_services table with message['resources_crawled']
+        # Updating the quantity of 'crawled_resource' service used by the user
+        quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            'user_id': client_id,
+            'service_id': self.__crawled_resource_service_id
+        }).json()[0]['quantity']
+        requests.patch(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            'user_id': client_id,
+            'service_id': self.__crawled_resource_service_id
+        }, json={
+            'quantity': quantity + message['resources_crawled']
+        })
+
         # Sending songs to the SongUrlProcessors
         genre_id = crawler_state['desired_genre_id']
         genre_name = self.__genre_id_to_name[genre_id]
-        self.__start_computing_song_genres(client_id, message['domain'], genre_name, queue)
+        self._log_func(f'[{self._name}]'
+                       f'\n\tClientID: {client_id}'
+                       f'\n\tEvent: Songs were found by the spiders!'
+                       f'\n\tSongs to route to the UrlProcessors: {songs}')
+        self.__start_computing_song_genres(client_id, message['domain'], genre_name, songs)
 
     def __on_receive_message_from_song_url_processors(self, message: bytes) -> None:
         message = json.loads(message)
@@ -220,7 +283,7 @@ class CrawlerEngine(AbstractMicroservice):
         for genre, songs_urls in genre_to_urls.items():
             genre_id = self.__genre_name_to_id[genre]
             for url in songs_urls:
-                requests.post(API_URL_PREFIX, SONG_URLS_PATH, json={
+                requests.post(API_URL_PREFIX + SONG_URLS_PATH, json={
                     'user_id': client_id,
                     'genre_id': genre_id,
                     'song_url': url
@@ -234,18 +297,29 @@ class CrawlerEngine(AbstractMicroservice):
                 'song': message['song'],
                 'song_url': message['song_url']
             })
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: Song found by the UrlProcessors: {message["song_url"]}')
             return
 
         # If no song was from the desired genre, we start crawling again
         # (if max_resources_crawled number is still positive)
         crawler_state = requests.get(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}').json()
-        max_resources_crawled = crawler_state['max_resources_crawled']
-        if max_resources_crawled > 0:
+        max_crawled_resources = crawler_state['max_crawled_resources']
+        if max_crawled_resources > 0:
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: No song found with the desired genre found by the UrlProcessors...'
+                           f'\n\tAction taken: Started crawling again...')
             self.__start_crawling(client_id, crawler_state['domain'],
-                                  crawler_state['bloom_filter'], max_resources_crawled)
+                                  crawler_state['bloom_filter'], max_crawled_resources)
         else:
             # If the crawler crawled through the maximum number of resources,
             # we tell the user that the crawling was finished
+            self._log_func(f'[{self._name}]'
+                           f'\n\tClientID: {client_id}'
+                           f'\n\tEvent: No song found with the desired genre found by the UrlProcessors...'
+                           f'\n\tAction taken: max_resources_crawled reached, returning no song for the Controller...')
             self.__send_response_to_controller({
                 'client_id': client_id,
                 'ok': False

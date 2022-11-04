@@ -18,11 +18,11 @@ class CrawlerStateResource(AbstractResource):
     def put(self, user_id: int):
         session = self._create_session()
         data = request.json
-        state = CrawlerState(user_id, **data)
-        if session.query(CrawlerState).filter_by(user_id=user_id).count() == 0:
-            session.add(state)
-        else:
-            session.merge(state)
+        new_state = CrawlerState(user_id, **data)
+        state = session.query(CrawlerState).filter_by(user_id=user_id).first()
+        if state is not None:
+            session.delete(state)
+        session.add(new_state)
         session.commit()
 
     def delete(self, user_id: int):

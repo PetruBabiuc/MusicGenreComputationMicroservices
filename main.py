@@ -4,7 +4,9 @@ from time import sleep
 from typing import Any
 
 from src.business.GenreComputerRequestManager import GenreComputerRequestManager
+from src.business.crawler.CrawlerEngine import CrawlerEngine
 from src.business.crawler.Mp3ProcessorMicroservice import Mp3ProcessorMicroservice
+from src.business.crawler.Mp3SpiderMicroservice import Mp3SpiderMicroservice
 from src.business.crawler.SongGenreObtainer import SongGenreObtainer
 from src.business.genre_predictor_pipeline.SliceDataProcessor import SliceDataProcessor
 from src.business.genre_predictor_pipeline.SliceGenreAggregator import SliceGenreAggregator
@@ -71,17 +73,19 @@ if __name__ == '__main__':
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
 
             # Logic business -> Genre computation pipeline
-            ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
-            ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
-            ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
-            ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
-            ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
-            ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
-            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
+            # ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
+            # ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
+            # ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
+            # ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
+            # ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
+            # ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
+            # ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 
             # Logic business -> Crawler
-            # ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
-            # ReplicationInfo(Mp3ProcessorMicroservice, 3, 'Mp3Processor', ()),
+            ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
+            ReplicationInfo(Mp3ProcessorMicroservice, instances_number, 'Mp3Processor', ()),
+            ReplicationInfo(Mp3SpiderMicroservice, instances_number, 'Mp3Spider', ()),
+            ReplicationInfo(CrawlerEngine, 1, 'CrawlerEngine', ())
         )
 
     processes = []
@@ -96,7 +100,7 @@ if __name__ == '__main__':
     try:
         for p in processes:
             p.start()
-            sleep(0.5)
+            sleep(0.75)
         for p in processes:
             p.join()
     except BaseException:

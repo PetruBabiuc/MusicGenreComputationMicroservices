@@ -1,4 +1,5 @@
-- Created and integrated database API
-- Updated diagrams. Also, they are in PNG format now
-- Updated controller messages flow (more details in microservices diagrams)
-- Implemented CrawlerEngine (not yet integrated nor tested)
+- Split DB API and DB confing in two separate files
+- Added controller's logic that handles requests for crawler
+- Fixed PUT request handling for crawler states
+- Imporoved CrawlerEngine
+- Modified DB scheme

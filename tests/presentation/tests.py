@@ -3,6 +3,8 @@ import os.path
 import time
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Thread
+
+from config import controller
 from config.controller import CLIENT_PORT, HOST
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
@@ -114,5 +116,35 @@ def test5():
         t.join()
 
 
+def request_crawling(client_id: int, max_crawled_resource: int, max_genres_computed: int, domain: str = None):
+    message = {
+        'client_id': client_id,
+        'operation': 'crawl',
+        'genre_id': 1,
+        'max_crawled_resources': max_crawled_resource,
+        'max_computed_genres': max_genres_computed
+    }
+    if domain is not None:
+        message['domain'] = domain
+    # Interacting with the controller
+    client_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
+    client_socket.connect((HOST, CLIENT_PORT))
+    client_socket.send_dict_as_json(message)
+    response = client_socket.receive_json_as_dict()
+    if response['ok']:
+        print(f'Song found: {response["song_url"]}')
+        song = Base64Converter.string_to_bytes(response['song'])
+        with open('found_song.mp3', 'wb') as f:
+            f.write(song)
+    else:
+        print('No song found...')
+
+
+def test6():
+    # domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/'
+    domain = 'https://cdn.freesound.org/mtg-jamendo/autotagging_moodtheme/audio-low/00/'
+    request_crawling(1, 20, 4, domain)
+
+
 if __name__ == '__main__':
-    test5()
+    test6()

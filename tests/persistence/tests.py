@@ -1,4 +1,5 @@
-from config import database
+import config.database
+from config import database_api
 from src.helpers.MariaDbDatabaseManager import MariaDbDatabaseManager
 from src.persistence.DatabaseManagerStub import DatabaseManagerStub
 
@@ -16,14 +17,14 @@ def test1():
     pass
 
 def test2():
-    db_man = MariaDbDatabaseManager(database.USER, database.PASSWORD,
-                                    database.DATABASE, database.DB_HOST, database.DB_PORT)
+    db_man = MariaDbDatabaseManager(config.database.USER, config.database.PASSWORD,
+                                    config.database.DATABASE, config.database.DB_HOST, config.database.DB_PORT)
     users = db_man.query('SELECT * FROM users;')
     pass
 
 def test3():
-    db_man = MariaDbDatabaseManager(database.USER, database.PASSWORD,
-                                    database.DATABASE, database.DB_HOST, database.DB_PORT)
+    db_man = MariaDbDatabaseManager(config.database.USER, config.database.PASSWORD,
+                                    config.database.DATABASE, config.database.DB_HOST, config.database.DB_PORT)
     new_id = db_man.insert("INSERT INTO users VALUES(DEFAULT, ?, ?, ?, ?);", ('petru', 'petru', 2, True))
     users = db_man.query('SELECT * FROM users;')
     pass

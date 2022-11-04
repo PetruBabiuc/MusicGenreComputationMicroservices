@@ -21,11 +21,12 @@ class AbstractSpiderMicroservice(AbstractMicroservice, metaclass=ABCMeta):
         self.__bloom_filter_file_name = f'{self._name}BloomFilter.raw'
         self.__spider = spider
 
-    def __deserialize_message(self, message: bytes) -> tuple[int, SpiderState]:
+    def __deserialize_message(self, message: bytes) -> tuple[int, int, SpiderState]:
         message = json.loads(message)
 
         domain = message['domain']
         client_id = message['client_id']
+        max_crawled_resources = message['max_crawled_resources']
 
         if 'bloom_filter' in message:
             bloom_filter = BloomFilter.from_base64(self.__bloom_filter_file_name, message['bloom_filter'])
@@ -39,15 +40,16 @@ class AbstractSpiderMicroservice(AbstractMicroservice, metaclass=ABCMeta):
             bloom_filter.add(domain)
         queue = collections.deque(queue)
 
-        return client_id, SpiderState(domain, bloom_filter, queue)
+        return client_id, max_crawled_resources, SpiderState(domain, bloom_filter, queue)
 
     def _on_received_message(self, message: bytes):
-        client_id, state = self.__deserialize_message(message)
+        client_id, max_crawled_resources, state = self.__deserialize_message(message)
         self._log_func(f'[{self._name}] Received state:'
                        f'\n\t ClientID: {client_id}'
                        f'\n\t Domain: {state.domain}'
                        f'\n\t Queue: {state.queue}')
         self.__spider.state = state
+        self.__spider.max_crawled_resources = max_crawled_resources
         spider_return = self.__spider.crawl()
         self._log_func(f'[{self._name}] Returned:'
                        f'\n\t ClientID: {client_id}'

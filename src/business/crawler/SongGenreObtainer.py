@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from io import BytesIO
 from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
@@ -65,17 +66,22 @@ class SongGenreObtainer(AbstractMicroservice):
 
         message = {'source': 'Crawler', 'client_id': client_id}
 
-        request_manager_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
-        request_manager_socket.connect((REQUEST_MANAGER_HOST, REQUEST_MANAGER_PORT))
+        # TODO: Temporary change: get random genre instead of computing it, my laptop's RAM can't handle that much...
+        # request_manager_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
+        # request_manager_socket.connect((REQUEST_MANAGER_HOST, REQUEST_MANAGER_PORT))
+        #
+        # self.__genre_awaiter.put_awaitable(client_id)
+        #
+        # # Complete message for RequestManager: dict -> JSON string -> UTF-8 encoded string + song bytes
+        # request_manager_socket.send_dict_as_json(message)
+        # request_manager_socket.send_message(song)
+        # request_manager_socket.close()
+        #
+        # result = self.__genre_awaiter.await_result(client_id)
 
-        self.__genre_awaiter.put_awaitable(client_id)
-
-        # Complete message for RequestManager: dict -> JSON string -> UTF-8 encoded string + song bytes
-        request_manager_socket.send_dict_as_json(message)
-        request_manager_socket.send_message(song)
-        request_manager_socket.close()
-
-        result = self.__genre_awaiter.await_result(client_id)
+        # TODO: REMOVE
+        result = {'client_id': client_id, 'genre': random.choice(GENRES)}
+        # TODO: REMOVE
 
         url_processor_socket.send_dict_as_json(result)
         url_processor_socket.close()

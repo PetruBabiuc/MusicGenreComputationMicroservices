@@ -76,7 +76,7 @@ CREATE TABLE licenta.crawler_states (
   `user_id` int(11) NOT NULL,
   `desired_genre_id` int(11) NOT NULL,
   `domain` varchar(100) NOT NULL,
-  `bloom_filter` varchar(10000) DEFAULT NULL,
+  `bloom_filter` LONGTEXT DEFAULT NULL,
   `max_crawled_resources` int(11) DEFAULT NULL,
   `max_computed_genres` int(11) NOT NULL DEFAULT 0,
   `finished` tinyint(1) NOT NULL DEFAULT 0,
