@@ -22,6 +22,7 @@ class CrawlerStateResource(AbstractResource):
         state = session.query(CrawlerState).filter_by(user_id=user_id).first()
         if state is not None:
             session.delete(state)
+            session.flush()
         session.add(new_state)
         session.commit()
 

@@ -58,10 +58,12 @@ if __name__ == '__main__':
 
             # Logic business -> Crawler
             ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),
-            ReplicationInfo(Mp3ProcessorMicroservice, 1, 'Mp3Processor', ())
+            ReplicationInfo(Mp3ProcessorMicroservice, 1, 'Mp3Processor', ()),
+            ReplicationInfo(Mp3SpiderMicroservice, 1, 'Mp3Spider', ()),
+            ReplicationInfo(CrawlerEngine, 1, 'CrawlerEngine', ())
         )
     else:
-        instances_number = 2
+        instances_number = 1
         microservices_info = (
             # Persistence
             ReplicationInfo(DatabaseAPI, 1, 'DatabaseAPI', ()),
@@ -73,13 +75,13 @@ if __name__ == '__main__':
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
 
             # Logic business -> Genre computation pipeline
-            # ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
-            # ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
-            # ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
-            # ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
-            # ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
-            # ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
-            # ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
+            ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
+            ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
+            ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
+            ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
+            ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
+            ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
+            ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 
             # Logic business -> Crawler
             ReplicationInfo(SongGenreObtainer, 1, 'SongGenreObtainer', ()),

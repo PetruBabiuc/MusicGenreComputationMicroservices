@@ -6,10 +6,12 @@ from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 from typing import Callable
 
+import requests
 from mutagen.id3 import ID3
 
 from config.constants import ID_FIELD_SIZE
 from config.crawler_genre_obtainer import HOST, COMPUTATION_RESULTS_PORT, URL_PROCESSOR_PORT
+from config.database_api import API_URL_PREFIX, SERVICES_PATH, CRAWLER_STATES_PATH, USERS_TO_SERVICES_PATH
 from config.dnn import GENRES
 from config.genre_computer_request_manager import HOST as REQUEST_MANAGER_HOST, REQUESTS_PORT as REQUEST_MANAGER_PORT
 from src.AbstractMicroservice import AbstractMicroservice
@@ -29,12 +31,19 @@ class SongGenreObtainer(AbstractMicroservice):
         self.__url_processor_server_socket.bind((HOST, URL_PROCESSOR_PORT))
         self.__url_processor_server_socket.listen()
 
+        self.__genre_computation_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH, params={
+            'service_name': 'genre_computation'
+        }).json()[0]['service_id']
+
         self._log_func(f'[{self._name}] ServerSocket for URL Processors opened on {HOST}:{URL_PROCESSOR_PORT}')
 
     @staticmethod
     def __get_genre_from_metadata(song: bytes) -> str | None:
         song = BytesIO(song)
-        id3 = ID3(song)
+        try:
+            id3 = ID3(song)
+        except BaseException:  # ID#NoHeaderException etc
+            return
 
         genre = id3.get('TCON', default=None)
         if not genre:
@@ -66,30 +75,42 @@ class SongGenreObtainer(AbstractMicroservice):
 
         message = {'source': 'Crawler', 'client_id': client_id}
 
-        # TODO: Temporary change: get random genre instead of computing it, my laptop's RAM can't handle that much...
-        # request_manager_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
-        # request_manager_socket.connect((REQUEST_MANAGER_HOST, REQUEST_MANAGER_PORT))
-        #
-        # self.__genre_awaiter.put_awaitable(client_id)
-        #
-        # # Complete message for RequestManager: dict -> JSON string -> UTF-8 encoded string + song bytes
-        # request_manager_socket.send_dict_as_json(message)
-        # request_manager_socket.send_message(song)
-        # request_manager_socket.close()
-        #
-        # result = self.__genre_awaiter.await_result(client_id)
+        max_computed_genres = requests.get(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}').json()['max_computed_genres']
+        if max_computed_genres == 0:
+            result = {'genre': 'Computing...'}
+        else:
+            request_manager_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
+            request_manager_socket.connect((REQUEST_MANAGER_HOST, REQUEST_MANAGER_PORT))
 
-        # TODO: REMOVE
-        result = {'client_id': client_id, 'genre': random.choice(GENRES)}
-        # TODO: REMOVE
+            self.__genre_awaiter.put_awaitable(client_id)
 
-        url_processor_socket.send_dict_as_json(result)
-        url_processor_socket.close()
+            # Complete message for RequestManager: dict -> JSON string -> UTF-8 encoded string + song bytes
+            request_manager_socket.send_dict_as_json(message)
+            request_manager_socket.send_message(song)
+            request_manager_socket.close()
+
+            result = self.__genre_awaiter.await_result(client_id)
+
+            # TODO: REMOVE DEBUG CODE
+            # result = {'genre': random.choice(GENRES)}
+
+            # quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            #     'user_id': client_id,
+            #     'service_id': self.__genre_computation_service_id
+            # }).json()[0]['quantity']
+            # requests.patch(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
+            #     'user_id': client_id,
+            #     'service_id': self.__genre_computation_service_id
+            # }, json={
+            #     'quantity': quantity + 1
+            # })
+
         self._log_func(f'[{self._name}] Request handled:'
-                       f'\n\tSong bytes: {len(message)}'
                        f'\n\tClient ID: {client_id}'
                        f'\n\tResult: {result}'
                        f'\n\tGenre computed using the pipeline!')
+        url_processor_socket.send_dict_as_json(result)
+        url_processor_socket.close()
 
     def __receive_requests(self):
         while True:

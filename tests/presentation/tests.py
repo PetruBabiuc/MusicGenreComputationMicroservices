@@ -1,11 +1,13 @@
 import glob
 import os.path
+import random
 import time
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Thread
 
 from config import controller
 from config.controller import CLIENT_PORT, HOST
+from config.dnn import GENRES
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 
@@ -116,11 +118,12 @@ def test5():
         t.join()
 
 
-def request_crawling(client_id: int, max_crawled_resource: int, max_genres_computed: int, domain: str = None):
+def request_crawling(client_id: int, genre_id: int, max_crawled_resource: int, max_genres_computed: int,
+                     domain: str = None) -> bool:
     message = {
         'client_id': client_id,
         'operation': 'crawl',
-        'genre_id': 1,
+        'genre_id': genre_id,
         'max_crawled_resources': max_crawled_resource,
         'max_computed_genres': max_genres_computed
     }
@@ -137,14 +140,59 @@ def request_crawling(client_id: int, max_crawled_resource: int, max_genres_compu
         with open('found_song.mp3', 'wb') as f:
             f.write(song)
     else:
-        print('No song found...')
+        print(f'No song found...\nResponse: {response}')
+    return 'finished' in response or 'no_more_resources_to_crawl' in response
 
+
+domain = 'https://cdn.freesound.org/'
+
+
+# domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/'
+# domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/1002000.mp3'
+# domain = 'https://cdn.freesound.org/mtg-jamendo/autotagging_moodtheme/audio-low/00/'
 
 def test6():
-    # domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/'
-    domain = 'https://cdn.freesound.org/mtg-jamendo/autotagging_moodtheme/audio-low/00/'
-    request_crawling(1, 20, 4, domain)
+    request_crawling(
+        client_id=1,
+        genre_id=6,
+        max_crawled_resource=0,
+        max_genres_computed=10,
+        domain=domain
+    )
+
+
+def test7():
+    request_crawling(
+        client_id=1,
+        genre_id=6,
+        max_crawled_resource=200,
+        max_genres_computed=5,
+        domain=domain
+    )
+    print('FIRST CRAWL OK')
+    crawls = 1
+    while True:
+        if request_crawling(
+                client_id=1,
+                genre_id=1,
+                max_crawled_resource=200,
+                max_genres_computed=5,
+        ):
+            break
+        crawls += 1
+    print(f'TOTAL CRAWLS: {crawls}')
+
+
+def test8():
+    found_genres = [4, 5, 3, 3, 4]
+    for index, genre_id in enumerate(found_genres):
+        request_crawling(
+            client_id=1,
+            genre_id=genre_id,
+            max_crawled_resource=1,
+            max_genres_computed=1,
+        )
 
 
 if __name__ == '__main__':
-    test6()
+    test7()

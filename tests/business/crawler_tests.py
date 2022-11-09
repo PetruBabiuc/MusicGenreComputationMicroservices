@@ -1,12 +1,15 @@
 import json
 import time
 from collections import deque
+from io import BytesIO
 from itertools import tee
 from urllib.parse import urlparse, urljoin
+from urllib.robotparser import RobotFileParser
 
 import requests
 import selenium.webdriver.firefox.webdriver
 from lxml import etree
+from mutagen.mp3 import MP3
 from pybloomfilter import BloomFilter
 from selenium.webdriver.firefox.options import Options
 
@@ -221,6 +224,24 @@ def test10():
     producer.send_message(state)
     consumer.start_receiving_messages()
 
+def test11():
+    robot = RobotFileParser()
+    parsed = urlparse('https://cdn.freesound.org/mtg-jamendo/')
+    robots_txt = f'{parsed.scheme}://{parsed.netloc}'
+    robots_txt = urljoin(robots_txt, '/robots.txt')
+    path = parsed.path
+    robot.set_url(robots_txt)
+    robot.read()
+    print(robot.can_fetch('*', path))
+
+def test12():
+    file_path = '../../debug_files/too_short.mp3'
+    file_path = '../../debug_files/Controller - Song.mp3'
+    with open(file_path, 'rb') as f:
+        song = f.read()
+    song = MP3(BytesIO(song))
+    song.info.length
+    pass
 
 if __name__ == '__main__':
-    test4()
+    test12()

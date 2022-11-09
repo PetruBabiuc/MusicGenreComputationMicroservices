@@ -11,20 +11,27 @@ class SongUrlResource(AbstractResource):
         session = self._create_session()
         songs = session.query(SongUrl).filter_by(**kwargs).all()
         songs = [to_dict(url) for url in songs]
-        for song in songs:
-            del song['user_id']
-            del song['song_url_id']
         return jsonify(songs)
 
     def post(self):
         session = self._create_session()
-        data = request.json
-        song = SongUrl(**data)
-        session.add(song)
+        if request.args.get('bulk', False):
+            genre_id = request.json['genre_id']
+            user_id = request.json['user_id']
+            urls = request.json['urls']
+            song_urls = [SongUrl(song_url=url, user_id=user_id, genre_id=genre_id) for url in urls]
+            session.add_all(song_urls)
+        else:
+            data = request.json
+            song = SongUrl(**data)
+            session.add(song)
         session.commit()
 
     def delete(self):
-        kwargs = query_multidict_to_orm(request.args, SongUrl)
         session = self._create_session()
-        session.query(SongUrl).filter_by(kwargs).delete()
+        if request.args.get('bulk', False):
+            session.query(SongUrl).filter(SongUrl.song_url_id.in_(request.json)).delete()
+        else:
+            kwargs = query_multidict_to_orm(request.args, SongUrl)
+            session.query(SongUrl).filter_by(**kwargs).delete()
         session.commit()

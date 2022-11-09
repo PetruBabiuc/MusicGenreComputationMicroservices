@@ -1,5 +1,5 @@
 import json
-from abc import ABCMeta
+import time
 from socket import socket, AF_INET, SOCK_STREAM
 from typing import Callable, Any
 from urllib.parse import urljoin
@@ -43,13 +43,25 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
 
         for index, url in enumerate(urls):
             absolute_url = urljoin(domain, url)
-            song = requests.get(absolute_url)
+            self.__schedule_request(domain)
+            song = requests.get(absolute_url, timeout=10)  # seconds
             if not song.ok:
+                self._log_func(f'[{self._name}] Timeout on GET request for {absolute_url}')
                 continue
             song = song.content
-            response = self.__compute_genre(client_id, song)
-            genre = response['genre']
-            if genre == desired_genre:
+
+            # TODO: Revert DEBUG CODE
+            # with open('/home/petru/Licenta/Microservices/tests/presentation/found_song.mp3', 'rb') as f:
+            #     song = f.read()
+
+            genre = self.__compute_genre(client_id, song)['genre']
+
+            # SongGenreObtainer stopped computing genres so we should stop requesting genre computations
+            if genre == 'Computing...':
+                response['unchecked_urls'] = urls[index:]
+                break
+
+            if genre in desired_genre:
                 response['song'] = Base64Converter.bytes_to_string(song)
                 response['song_url'] = url
                 if index < len(urls) - 1:
@@ -63,7 +75,10 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
         if genre_to_urls:
             response['genre_to_urls'] = genre_to_urls
 
-        self._log_func(f'[{self._name}] Response: {response}')
+        response_to_print = dict(response)
+        if 'song' in response_to_print:
+            response_to_print['song'] = f'{len(response["song"])} Base64 characters...'
+        self._log_func(f'[{self._name}] Response: {response_to_print}')
         self.__return_response(response)
 
     def __return_response(self, response: dict[str, Any]) -> None:
@@ -79,6 +94,10 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
         response = client_socket.receive_json_as_dict()
         client_socket.close()
         return response
+
+    @staticmethod
+    def __schedule_request(domain: str):
+        time.sleep(0.75)
 
     def run(self) -> None:
         self.__consumer.start_receiving_messages()

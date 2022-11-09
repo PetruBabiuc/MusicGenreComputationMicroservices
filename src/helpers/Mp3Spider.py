@@ -8,10 +8,8 @@ from src.model.SpiderState import SpiderState
 
 
 class Mp3Spider(AbstractSpider):
-    def __init__(self, state: SpiderState = None, /,
-                 max_found_items=1, max_crawled_resources=0, bloom_filter_name: str = 'bloom_filter.raw',
-                 bloom_filter_capacity: int = 10_000_000, bloom_filter_error_rate: float = 0.1,
+    def __init__(self, state: SpiderState = None, /, max_found_items=1, max_crawled_resources=0,
                  domain_request_scheduler: Callable[[str], None] = lambda _: sleep(0.25)):
         processors = [HtmlProcessor(), Mp3Processor()]
-        super().__init__(processors, state, max_found_items, max_crawled_resources, bloom_filter_name,
-                         bloom_filter_capacity, bloom_filter_error_rate, domain_request_scheduler)
+        super().__init__(processors, state, max_found_items, max_crawled_resources,
+                         domain_request_scheduler=domain_request_scheduler)

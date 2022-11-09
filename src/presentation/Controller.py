@@ -94,6 +94,17 @@ class Controller(AbstractMicroservice):
         client_socket.send_message(song_bytes)
         client_socket.close()
 
+    @staticmethod
+    def __check_if_crawling_is_finished(client_id: int) -> bool:
+        resources_urls = requests.get(API_URL_PREFIX + RESOURCES_URLS_PATH, params={'user_id': client_id}).json()
+        if len(resources_urls) > 0:
+            return False
+        songs_urls = requests.get(API_URL_PREFIX + SONG_URLS_PATH, params={'user_id': client_id}).json()
+        if len(songs_urls) > 0:
+            return False
+        requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={'finished': True})
+        return True
+
     def __serve_client_task(self):
         while True:
             client_socket, addr = self.__client_server_socket.accept()
@@ -131,6 +142,16 @@ class Controller(AbstractMicroservice):
             })
         else:
             # New crawling request on the same domain
+            if requests.get(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}').json()['finished']:
+                client_socket.send_dict_as_json({
+                    'ok': False,
+                    'finished': True
+                })
+                self._log_func(f'[{self._name}] Invalid crawling attempt:'
+                               f'\n\tClientID: {client_id}'
+                               f'\n\tDomain already finished crawling...')
+                client_socket.close()
+                return
             requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json=body)
 
         self.__crawling_results_awaiter.put_awaitable(client_id)
@@ -142,6 +163,9 @@ class Controller(AbstractMicroservice):
         crawler_socket.close()
 
         result = self.__crawling_results_awaiter.await_result(client_id)
+
+        if self.__check_if_crawling_is_finished(client_id):
+            result['finished'] = True
 
         # No song found...
         if not result['ok']:

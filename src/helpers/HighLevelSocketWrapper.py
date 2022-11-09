@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 import os.path
-from socket import socket, error as socket_error
+from socket import socket, error as socket_error, SOL_SOCKET, SO_REUSEADDR
 from typing import Any
 
 from src.helpers.abstract_classes.MessageProducerInterface import MessageProducerInterface
@@ -10,6 +10,7 @@ from src.helpers.abstract_classes.SyncMessageConsumerInterface import SyncMessag
 
 class HighLevelSocketWrapper(SyncMessageConsumerInterface, MessageProducerInterface):
     def __init__(self, _socket: socket):
+        _socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.__header_bytes_number = 4
 
         self.bind = _socket.bind

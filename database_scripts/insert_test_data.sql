@@ -39,8 +39,3 @@ INSERT INTO songs VALUES(DEFAULT, 4, 1, 'Memories');
 
 INSERT INTO song_info VALUES(1, 'Rihanna', 1);
 INSERT INTO song_info VALUES(2, 'David Guetta', 1);
-
--- user_id, desired_genre_id, domain, bloom_filter, max_crawled_resources, max_computed_genres, finished
--- INSERT INTO crawler_states VALUES(1, 1, 'https://cdn.freesound.org/', NULL, 1000, 1000, DEFAULT);
-
-SELECT * FROM song_urls su  ;

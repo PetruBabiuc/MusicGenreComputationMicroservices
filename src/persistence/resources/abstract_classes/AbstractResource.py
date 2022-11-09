@@ -3,7 +3,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import config.database
-from config import database_api
 
 
 class AbstractResource(Resource):

@@ -15,13 +15,22 @@ class ResourceUrlResource(AbstractResource):
 
     def post(self):
         session = self._create_session()
-        data = request.json
-        resource_url = ResourceUrl(**data)
-        session.add(resource_url)
+        if request.args.get('bulk', default=False):
+            user_id = int(request.args['user_id'])
+            resources_urls = [ResourceUrl(user_id=user_id, resource_url=url) for url in request.json]
+            session.add_all(resources_urls)
+        else:
+            data = request.json
+            resource_url = ResourceUrl(**data)
+            session.add(resource_url)
         session.commit()
 
     def delete(self):
-        kwargs = query_multidict_to_orm(request.args, ResourceUrl)
         session = self._create_session()
-        session.query(ResourceUrl).filter_by(**kwargs).delete()
+        if request.args.get('bulk', False):
+            resources_urls_ids = request.json
+            session.query(ResourceUrl).filter(ResourceUrl.resource_url_id.in_(resources_urls_ids)).delete()
+        else:
+            kwargs = query_multidict_to_orm(request.args, ResourceUrl)
+            session.query(ResourceUrl).filter_by(**kwargs).delete()
         session.commit()
