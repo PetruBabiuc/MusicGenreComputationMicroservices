@@ -162,14 +162,14 @@ def test6():
 
 
 def test7():
-    request_crawling(
-        client_id=1,
-        genre_id=6,
-        max_crawled_resource=200,
-        max_genres_computed=5,
-        domain=domain
-    )
-    print('FIRST CRAWL OK')
+    # request_crawling(
+    #     client_id=1,
+    #     genre_id=6,
+    #     max_crawled_resource=200,
+    #     max_genres_computed=5,
+    #     domain=domain
+    # )
+    # print('FIRST CRAWL OK')
     crawls = 1
     while True:
         if request_crawling(

@@ -257,11 +257,7 @@ class CrawlerEngine(AbstractMicroservice):
         resources_urls = requests.get(API_URL_PREFIX + RESOURCES_URLS_PATH, params={'user_id': client_id}).json()
         if len(queue) > 0 or len(resources_urls) > 0:
             requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={
-                'bloom_filter': message['bloom_filter']
-            })
-
-            # Updating crawler state's max_crawled_resources field.
-            requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={
+                'bloom_filter': message['bloom_filter'],
                 'max_crawled_resources': crawler_state['max_crawled_resources'] - message['resources_crawled']
             })
 

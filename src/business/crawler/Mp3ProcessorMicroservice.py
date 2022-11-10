@@ -56,7 +56,7 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
 
             genre = self.__compute_genre(client_id, song)['genre']
 
-            # SongGenreObtainer stopped computing genres so we should stop requesting genre computations
+            # SongGenreObtainer stopped computing genres, so we should stop requesting genre computations
             if genre == 'Computing...':
                 response['unchecked_urls'] = urls[index:]
                 break
