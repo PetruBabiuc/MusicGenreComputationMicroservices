@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from multiprocessing import Process
 from time import sleep
-from typing import Any
+from typing import Any, Type
 
 from src.business.GenreComputerRequestManager import GenreComputerRequestManager
 from src.business.crawler.CrawlerEngine import CrawlerEngine
@@ -15,13 +15,14 @@ from src.business.genre_predictor_pipeline.SpectrogramFilter import DebugSpectro
 from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrogramMaker, SpectrogramMaker
 from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
 from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
+# from src.persistence.DatabaseAPI import DatabaseAPI
 from src.persistence.DatabaseAPI import DatabaseAPI
 from src.presentation.Controller import DebugController, Controller
 
 
 @dataclass
 class ReplicationInfo:
-    microservice_class: Any
+    microservice_class: Type
     instances_number: int
     name: str
     args: tuple
@@ -108,3 +109,5 @@ if __name__ == '__main__':
     except BaseException:
         for p in processes:
             p.kill()
+
+    

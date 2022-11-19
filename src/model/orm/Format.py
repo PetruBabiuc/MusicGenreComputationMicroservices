@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String
 
-from src.model.orm.OrmUtils import Base
+from src.helpers.ModelUtils import Base
 
 
-class SongGenre(Base):
-    __tablename__ = 'formats'
+class SongFormat(Base):
+    __tablename__ = 'song_format'
 
     format_id = Column(Integer, primary_key=True)
     format_name = Column(String)

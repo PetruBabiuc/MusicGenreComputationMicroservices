@@ -1,3 +1,4 @@
+import gc
 import os
 import shlex
 from io import BytesIO

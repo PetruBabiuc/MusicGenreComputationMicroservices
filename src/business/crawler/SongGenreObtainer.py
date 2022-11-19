@@ -11,7 +11,7 @@ from mutagen.id3 import ID3
 
 from config.constants import ID_FIELD_SIZE
 from config.crawler_genre_obtainer import HOST, COMPUTATION_RESULTS_PORT, URL_PROCESSOR_PORT
-from config.database_api import API_URL_PREFIX, SERVICES_PATH, CRAWLER_STATES_PATH, USERS_TO_SERVICES_PATH
+from config.database_api import *
 from config.dnn import GENRES
 from config.genre_computer_request_manager import HOST as REQUEST_MANAGER_HOST, REQUESTS_PORT as REQUEST_MANAGER_PORT
 from src.AbstractMicroservice import AbstractMicroservice
@@ -75,7 +75,9 @@ class SongGenreObtainer(AbstractMicroservice):
 
         message = {'source': 'Crawler', 'client_id': client_id}
 
-        max_computed_genres = requests.get(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}').json()['max_computed_genres']
+        max_computed_genres = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+            PathParamNames.USER_ID: client_id
+        })).json()['max_computed_genres']
         if max_computed_genres == 0:
             result = {'genre': 'Computing...'}
         else:

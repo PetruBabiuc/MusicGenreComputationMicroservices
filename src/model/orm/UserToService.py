@@ -1,13 +1,13 @@
 from sqlalchemy import Column, Integer, ForeignKey, Float
 
-from src.model.orm.OrmUtils import Base
+from src.helpers.ModelUtils import Base
 
 
 class UserToService(Base):
-    __tablename__ = 'users_to_services'
+    __tablename__ = 'user_to_service'
 
-    user_id = Column(Integer, ForeignKey('users.user_id'), primary_key=True)
-    service_id = Column(Integer, ForeignKey('services.service_id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
+    service_id = Column(Integer, ForeignKey('service.service_id'), primary_key=True)
     quantity = Column(Float)
 
     def __init__(self, user_id, service_id, quantity):

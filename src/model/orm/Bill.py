@@ -1,13 +1,13 @@
 from sqlalchemy import Column, Integer, ForeignKey, Float, Date, Boolean
 
-from src.model.orm.OrmUtils import Base
+from src.helpers.ModelUtils import Base
 
 
 class Bill(Base):
-    __tablename__ = 'bills'
+    __tablename__ = 'bill'
 
     bill_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
+    user_id = Column(Integer, ForeignKey('user.user_id'))
     price = Column(Float)
     deadline = Column(Date)
     is_paid = Column(Boolean)

@@ -7,7 +7,7 @@ import requests
 
 import config.crawler_genre_obtainer as crawler
 from config import controller
-from config.database_api import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, USERS_TO_SERVICES_PATH, SERVICES_PATH
+from config.database_api import *
 from config.genre_computer_request_manager import HOST, REQUESTS_PORT, RESULTS_PORT
 from config.rabbit_mq import GenreComputationPipeline
 from src.AbstractMicroservice import AbstractMicroservice
@@ -32,14 +32,13 @@ class GenreComputerRequestManager(AbstractMicroservice):
         self._log_func(f'[{self._name}] ServerSocket for requests opened on {HOST}:{RESULTS_PORT}...')
 
         # Caching information about genres
-        genres = requests.get(API_URL_PREFIX + SONG_GENRES_PATH).json()
+        genres = requests.get(API_URL_PREFIX + SONGS_GENRES_PATH).json()
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
 
         # Caching information about 'genre_computation' service ID
-        for service in requests.get(API_URL_PREFIX + SERVICES_PATH).json():
-            if service['service_name'] == 'genre_computation':
-                self.__genre_computation_service_id = service['service_id']
-                break
+        self.__genre_computation_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH, params={
+            'service_name': 'genre_computation'
+        }).json()[0]['service_id']
 
         self.__song_sender = RabbitMqProducer(GenreComputationPipeline.SONGS_QUEUE.exchange,
                                               GenreComputationPipeline.SONGS_QUEUE.routing_key)
@@ -78,9 +77,13 @@ class GenreComputerRequestManager(AbstractMicroservice):
             # Updating song's genre
             genre_id = self.__genre_name_to_id[result['genre']]
             song_id = result['song_id']
-            requests.patch(API_URL_PREFIX + SONGS_PATH, params={'song_id': song_id}, json={'genre_id': genre_id})
+            requests.patch(API_URL_PREFIX + SONG_BY_ID_PATH.format(**{
+                PathParamNames.SONG_ID: song_id
+            }), json={'genre_id': genre_id})
 
-            user_id = requests.get(API_URL_PREFIX + SONGS_PATH, params={'song_id': song_id}).json()[0]['user_id']
+            user_id = requests.get(API_URL_PREFIX + SONG_BY_ID_PATH.format(**{
+                PathParamNames.SONG_ID: song_id
+            })).json()['user_id']
 
         elif result['source'] == 'Crawler':
             user_id = result['client_id']
@@ -88,15 +91,12 @@ class GenreComputerRequestManager(AbstractMicroservice):
             return  # This should not be possible, only sources are Crawler and Controller
 
         # Updating user's 'genre_computation' service quantity
-        quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
-            'user_id': user_id,
-            'service_id': self.__genre_computation_service_id
-        }).json()[0]['quantity']
-        requests.patch(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
-            'user_id': user_id,
-            'service_id': self.__genre_computation_service_id
-        }, json={
-            'quantity': quantity + 1
+        requests.patch(API_URL_PREFIX + USER_BY_ID_SERVICE_BY_ID_PATH.format(**{
+            PathParamNames.USER_ID: user_id,
+            PathParamNames.SERVICE_ID: self.__genre_computation_service_id
+        }), json={
+            'op': 'add_quantity',
+            'value': 1
         })
 
     def __route_response(self, con: HighLevelSocketWrapper, addr: tuple[str, int]) -> None:

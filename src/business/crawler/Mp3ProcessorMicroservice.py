@@ -50,7 +50,7 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
                 continue
             song = song.content
 
-            # TODO: Revert DEBUG CODE
+            # TODO: REMOVE DEBUG CODE
             # with open('/home/petru/Licenta/Microservices/tests/presentation/found_song.mp3', 'rb') as f:
             #     song = f.read()
 

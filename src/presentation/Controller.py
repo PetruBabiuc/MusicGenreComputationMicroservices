@@ -7,8 +7,7 @@ from urllib.parse import urlparse
 import requests
 
 from config import constants, controller, genre_computer_request_manager, crawler_engine
-from config.database_api import API_URL_PREFIX, SONG_GENRES_PATH, SONGS_PATH, CRAWLER_STATES_PATH, SONG_URLS_PATH, \
-    RESOURCES_URLS_PATH
+from config.database_api import *
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
@@ -38,7 +37,7 @@ class Controller(AbstractMicroservice):
                        f'opened on {controller.HOST}:{controller.GENRE_COMPUTATION_PORT}!')
 
         # Caching information about genres
-        genres = requests.get(API_URL_PREFIX + SONG_GENRES_PATH).json()
+        genres = requests.get(API_URL_PREFIX + SONGS_GENRES_PATH).json()
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
 
         self.__song_id_to_awaitable_result_package: SynchronizedDict[int, AwaitableResult[dict[str, Any]]] = \
@@ -96,13 +95,22 @@ class Controller(AbstractMicroservice):
 
     @staticmethod
     def __check_if_crawling_is_finished(client_id: int) -> bool:
-        resources_urls = requests.get(API_URL_PREFIX + RESOURCES_URLS_PATH, params={'user_id': client_id}).json()
-        if len(resources_urls) > 0:
+        response = requests.get(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_COUNT_PATH.format(**{
+            PathParamNames.USER_ID: client_id
+        })).json()
+        if response['count'] > 0:
             return False
-        songs_urls = requests.get(API_URL_PREFIX + SONG_URLS_PATH, params={'user_id': client_id}).json()
-        if len(songs_urls) > 0:
+        response = requests.get(API_URL_PREFIX + SONGS_URLS_COUNT_PATH.format(**{
+            PathParamNames.USER_ID: client_id
+        })).json()
+        if response['count'] > 0:
             return False
-        requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json={'finished': True})
+        requests.patch(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+            PathParamNames.USER_ID: client_id
+        }), json={'finished': True})
+        requests.delete(API_URL_PREFIX + BLOOM_FILTER_PATH.format(**{
+            PathParamNames.USER_ID: client_id
+        }))
         return True
 
     def __serve_client_task(self):
@@ -134,25 +142,32 @@ class Controller(AbstractMicroservice):
             parsed_domain = urlparse(message['domain'])
             body['domain'] = f'{parsed_domain.scheme}://{parsed_domain.netloc}/'
             # Adding/overwriting crawler state
-            requests.put(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json=body)
+            requests.put(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+                PathParamNames.USER_ID: client_id
+            }), json=body)
             # Adding seed url
-            requests.post(API_URL_PREFIX + RESOURCES_URLS_PATH, json={
-                'user_id': client_id,
+            requests.post(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_PATH.format(**{
+                PathParamNames.USER_ID: client_id
+            }), json={
                 'resource_url': parsed_domain.path
             })
         else:
             # New crawling request on the same domain
-            if requests.get(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}').json()['finished']:
+            if requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+                PathParamNames.USER_ID: client_id
+            })).json()['finished']:
+                self._log_func(f'[{self._name}] Invalid crawling attempt:'
+                               f'\n\tClientID: {client_id}'
+                               f'\n\tDomain already finished crawling...')
                 client_socket.send_dict_as_json({
                     'ok': False,
                     'finished': True
                 })
-                self._log_func(f'[{self._name}] Invalid crawling attempt:'
-                               f'\n\tClientID: {client_id}'
-                               f'\n\tDomain already finished crawling...')
                 client_socket.close()
                 return
-            requests.patch(f'{API_URL_PREFIX}{CRAWLER_STATES_PATH}/{client_id}', json=body)
+            requests.patch(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+                PathParamNames.USER_ID: client_id
+            }), json=body)
 
         self.__crawling_results_awaiter.put_awaitable(client_id)
 
@@ -177,8 +192,9 @@ class Controller(AbstractMicroservice):
         try:
             client_socket.send_dict_as_json(result)
         except BaseException:
-            requests.post(API_URL_PREFIX + SONG_URLS_PATH, json={
-                'user_id': client_id,
+            requests.post(API_URL_PREFIX + SONGS_URLS_PATH.format(**{
+                PathParamNames.USER_ID: client_id
+            }), json={
                 'genre_id': genre_id,
                 'song_url': result['song_url']
             })

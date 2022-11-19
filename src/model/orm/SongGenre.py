@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String
 
-from src.model.orm.OrmUtils import Base
+from src.helpers.ModelUtils import Base
 
 
 class SongGenre(Base):
-    __tablename__ = 'song_genres'
+    __tablename__ = 'song_genre'
 
     song_genre_id = Column(Integer, primary_key=True)
     song_genre_name = Column(String)

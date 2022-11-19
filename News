@@ -1,17 +1,4 @@
-- Improved crawler:
-    - Tested getting already found songs:
-        - Genre was already computed so it is downloaded and sent to the user
-        - Genre was not already computed, the Mp3ProcessorMicroservices process songs and, at some point, a song having the wanted genre is found
-        - Neither of already found songs had the desired genre so no song is sent to the user
-        - The SongGenreObtainer processes songs until the max_computed_genres gets to 0 then starts returning the 'Computing...' genre
-    - Tested crawling a domain:
-        - Tested starting the crawl process (the crawler state is initialized by the Controller and the CrawlerEngine is just told for what user to crawl)
-        - Tested resuming crawling
-        - Tested getting max_crawled_resources to 0 => the crawl stops
-        - Tested getting song from the second crawl iteration (first iteration returned a song url which didn't have te wanted genre)
-    - Now updating consumed services quantities
-    - Now properly clearing data from the previous crawled domain when changing domains
-    - The crawled finished state is handled better
-- Improved DB API (mostly with bulk add and delete operations for ResourceUrlResource)
-- Now crawling more politely (respecting robots.txt)
-- Added min and max crawled song duration duration
+- Improved database API
+    - Now uses FastAPI + ClassyFastAPI
+    - Even more RESTful, as RESTful as will ever get, no HATEOAS
+- Integrated the new API with the new paths
