@@ -1,6 +1,6 @@
 from typing import Any
 
-from classy_fastapi import get, patch, post
+from classy_fastapi import get, patch, post, delete
 from fastapi import Body
 from starlette import status
 from starlette.responses import Response, JSONResponse
@@ -36,5 +36,15 @@ class SongRoutes(AbstractRoutable):
         if query.count() == 0:
             return Response(status_code=status.HTTP_404_NOT_FOUND)
         query.update(body)
+        session.commit()
+        return Response(status_code=status.HTTP_200_OK)
+
+    @delete(api_paths.SONG_BY_ID_PATH)
+    def delete_song(self, song_id: int):
+        session = self._create_session()
+        song = session.get(Song, song_id)
+        if song is None:
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
+        session.delete(song)
         session.commit()
         return Response(status_code=status.HTTP_200_OK)

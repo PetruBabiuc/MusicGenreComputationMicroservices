@@ -7,13 +7,16 @@ from urllib.parse import urlparse
 import requests
 
 from config import constants, controller, genre_computer_request_manager, crawler_engine
+from config.constants import ID_FIELD_SIZE
 from config.database_api import *
+from config.redis import CONTROLLER_TOPIC
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
+from src.helpers.Mp3ValidatorProxy import Mp3ValidatorProxy
+from src.helpers.RedisJsonMessageAwaiter import RedisJsonMessageAwaiter
 from src.helpers.SocketJsonMessageAwaiter import SocketJsonMessageAwaiter
-from src.helpers.SynchronizedDict import SynchronizedDict
-from src.model.AwaitableResult import AwaitableResult
+from src.helpers.abstract_classes.AbstractMessageAwaiter import AbstractMessageAwaiter
 
 
 class Controller(AbstractMicroservice):
@@ -33,15 +36,14 @@ class Controller(AbstractMicroservice):
             controller.HOST, controller.CRAWLER_RESPONSES_PORT, 'client_id'
         )
 
+        self.__mp3_validator_proxy = Mp3ValidatorProxy(CONTROLLER_TOPIC, 'song_id')
+
         self._log_func(f'[{self._name}] ServerSocket for computation results '
                        f'opened on {controller.HOST}:{controller.GENRE_COMPUTATION_PORT}!')
 
         # Caching information about genres
         genres = requests.get(API_URL_PREFIX + SONGS_GENRES_PATH).json()
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
-
-        self.__song_id_to_awaitable_result_package: SynchronizedDict[int, AwaitableResult[dict[str, Any]]] = \
-            SynchronizedDict()
 
     def __serve_client(self, client_socket: HighLevelSocketWrapper, addr: tuple[str, int]) -> None:
         message = client_socket.receive_json_as_dict()
@@ -60,15 +62,23 @@ class Controller(AbstractMicroservice):
         client_id = message['client_id']
 
         # Inserting song row in the DB
-        genre_id = self.__genre_name_to_id['Computing...']
         response = requests.post(API_URL_PREFIX + SONGS_PATH, json={
             'user_id': client_id,
             'song_name': message['song_name'],
-            'genre_id': genre_id
+            'genre_id': self.__genre_name_to_id['Computing...']
         }).json()
         song_id = response['song_id']
 
         song = message['song']
+
+        if not self.__check_if_song_is_valid(song, song_id):
+            self._log_func(f'[{self._name}] Invalid MP3 from UserID = {client_id}...')
+            requests.delete(API_URL_PREFIX + SONG_BY_ID_PATH.format(**{
+                PathParamNames.SONG_ID: song_id
+            }))
+            client_socket.send_dict_as_json({'status': 'Invalid MP3'})
+            return
+
         song = Base64Converter.string_to_bytes(song)
 
         self.__genre_computation_results_awaiter.put_awaitable(song_id)
@@ -80,6 +90,13 @@ class Controller(AbstractMicroservice):
         message = self.__genre_computation_results_awaiter.await_result(song_id)
 
         client_socket.send_dict_as_json(message)
+
+    def __check_if_song_is_valid(self, base64_string_song: str, song_id: int) -> bool:
+        return self.__mp3_validator_proxy.validate_song({
+            'song_id': song_id,
+            'song': base64_string_song,
+            'source': 'Controller'
+        })
 
     def _compute_song_genre(self, song_id: int, song_bytes: bytes) -> None:
         message = song_id.to_bytes(constants.ID_FIELD_SIZE, 'big')

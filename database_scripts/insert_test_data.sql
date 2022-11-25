@@ -11,7 +11,7 @@ INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_2', 'password', 1, TRUE
 INSERT INTO service VALUES(DEFAULT, 'genre_computation', 50.0);
 INSERT INTO service VALUES(DEFAULT, 'crawled_resource', 2.0);
 
--- join_id, user_id, service_id, quantity
+-- user_id, service_id, quantity
 INSERT INTO user_to_service VALUES(1, 1, 0);
 INSERT INTO user_to_service VALUES(1, 2, 0);
 

@@ -34,7 +34,13 @@ class AbstractMessageAwaiter(Generic[K, V], metaclass=ABCMeta):
             awaitable_result.result = result
             awaitable_result.event.set()
 
+    def contains_key(self, key: K) -> bool:
+        return key in self.__sync_dict
+
+    def awaited_messages_count(self) -> int:
+        with self.__sync_dict as sync_dict:
+            return len(sync_dict)
+
     @abstractmethod
     def start_receiving_responses(self) -> None:
         pass
-

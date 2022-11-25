@@ -144,9 +144,11 @@ def request_crawling(client_id: int, genre_id: int, max_crawled_resources: int, 
     return 'finished' in response or 'no_more_resources_to_crawl' in response
 
 
-# domain = 'https://cdn.freesound.org/'
+domain = 'https://cdn.freesound.org/'
 # domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/'
-domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/1002000.mp3'  # genre_id = 2
+# domain = 'https://cdn.freesound.org/mtg-jamendo/raw_30s/audio/00/1002000.mp3'  # genre_id = 2
+
+
 # domain = 'https://cdn.freesound.org/mtg-jamendo/autotagging_moodtheme/audio-low/00/'
 
 def test6():
@@ -165,7 +167,7 @@ def test7():
     max_genres_computed = 5
     request_crawling(
         client_id=1,
-        genre_id=2,  # 6
+        genre_id=6,  # 2 is first
         max_crawled_resources=max_crawled_resources,
         max_genres_computed=max_genres_computed,
         domain=domain

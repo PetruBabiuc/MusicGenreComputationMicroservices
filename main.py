@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from multiprocessing import Process
 from time import sleep
-from typing import Any, Type
+from typing import Type
 
 from src.business.GenreComputerRequestManager import GenreComputerRequestManager
+from src.business.Mp3Validator import Mp3Validator
 from src.business.crawler.CrawlerEngine import CrawlerEngine
 from src.business.crawler.Mp3ProcessorMicroservice import Mp3ProcessorMicroservice
 from src.business.crawler.Mp3SpiderMicroservice import Mp3SpiderMicroservice
@@ -15,7 +16,6 @@ from src.business.genre_predictor_pipeline.SpectrogramFilter import DebugSpectro
 from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrogramMaker, SpectrogramMaker
 from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
 from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
-# from src.persistence.DatabaseAPI import DatabaseAPI
 from src.persistence.DatabaseAPI import DatabaseAPI
 from src.presentation.Controller import DebugController, Controller
 
@@ -74,6 +74,7 @@ if __name__ == '__main__':
 
             # Logic business
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
+            ReplicationInfo(Mp3Validator, instances_number, 'Mp3Validator', ()),
 
             # Logic business -> Genre computation pipeline
             ReplicationInfo(SpectrogramMaker, instances_number, 'SpectrogramMaker', ()),
