@@ -12,9 +12,11 @@ from mutagen.id3 import ID3
 from config.constants import ID_FIELD_SIZE
 from config.crawler_genre_obtainer import HOST, COMPUTATION_RESULTS_PORT, URL_PROCESSOR_PORT
 from config.database_api import *
+from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.dnn import GENRES
 from config.genre_computer_request_manager import HOST as REQUEST_MANAGER_HOST, REQUESTS_PORT as REQUEST_MANAGER_PORT
 from src.AbstractMicroservice import AbstractMicroservice
+from src.helpers.DatabaseApiProxy import DatabaseApiProxy
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 from src.helpers.SocketJsonMessageAwaiter import SocketJsonMessageAwaiter
 
@@ -31,9 +33,15 @@ class SongGenreObtainer(AbstractMicroservice):
         self.__url_processor_server_socket.bind((HOST, URL_PROCESSOR_PORT))
         self.__url_processor_server_socket.listen()
 
-        self.__genre_computation_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH, params={
-            'service_name': 'genre_computation'
-        }).json()[0]['service_id']
+        self.__database_proxy = DatabaseApiProxy(*MICROSERVICE_CREDENTIALS)
+
+        # TODO: REMOVE OLD CODE
+        self.__genre_computation_service_id = self.__database_proxy.get_services(
+            service_name='genre_computation'
+        )[0]['service_id']
+        # self.__genre_computation_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH, params={
+        #     'service_name': 'genre_computation'
+        # }).json()[0]['service_id']
 
         self._log_func(f'[{self._name}] ServerSocket for URL Processors opened on {HOST}:{URL_PROCESSOR_PORT}')
 
@@ -75,9 +83,11 @@ class SongGenreObtainer(AbstractMicroservice):
 
         message = {'source': 'Crawler', 'client_id': client_id}
 
-        max_computed_genres = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-            PathParamNames.USER_ID: client_id
-        })).json()['max_computed_genres']
+        # TODO: REMOVE OLD CODE
+        max_computed_genres = self.__database_proxy.get_crawler_state(client_id)['max_computed_genres']
+        # max_computed_genres = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
+        #     PathParamNames.USER_ID: client_id
+        # })).json()['max_computed_genres']
         if max_computed_genres == 0:
             result = {'genre': 'Computing...'}
         else:

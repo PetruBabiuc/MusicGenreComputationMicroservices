@@ -1,4 +1,7 @@
-- Improved database API
-    - Now uses FastAPI + ClassyFastAPI
-    - Even more RESTful, as RESTful as will ever get, no HATEOAS
-- Integrated the new API with the new paths
+- Added OAUTH2 with JWT authentication and authorization for the database API
+- Now the passwords are stored as hashes created with Bcrypt hashing algorithm
+- Created a database API proxy class that:
+    - Encapsulates the communication logic with the database API
+    - Acquires/renews JWT from the database using the given credentials
+- Secured most of the database API endpoints
+- Created automated tests for identity management function and the API proxy

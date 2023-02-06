@@ -1,13 +1,10 @@
 import glob
 import os.path
-import random
 import time
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Thread
 
-from config import controller
 from config.controller import CLIENT_PORT, HOST
-from config.dnn import GENRES
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 
@@ -198,4 +195,4 @@ def test8():
 
 
 if __name__ == '__main__':
-    test7()
+    test8()

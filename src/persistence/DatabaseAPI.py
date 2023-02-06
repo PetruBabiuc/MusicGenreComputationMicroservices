@@ -7,6 +7,7 @@ from config import database_api
 from src.AbstractMicroservice import AbstractMicroservice
 from src.persistence.routes.BloomFilterRoutes import BloomFilterRoutes
 from src.persistence.routes.CrawlerGeneralStateRoutes import CrawlerGeneralStateRoutes
+from src.persistence.routes.IdmRoutes import IdmRoutes
 from src.persistence.routes.ResourceUrlRoutes import ResourceUrlRoutes
 from src.persistence.routes.ServiceRoutes import ServiceRoutes
 from src.persistence.routes.SongGenreRoutes import SongGenreRoutes
@@ -20,7 +21,7 @@ class DatabaseAPI(AbstractMicroservice):
         super().__init__(name, log_func)
         self.__app = FastAPI()
         routes = [UserRoutes, CrawlerGeneralStateRoutes, ResourceUrlRoutes, SongUrlRoutes, ServiceRoutes,
-                  SongGenreRoutes, SongRoutes, BloomFilterRoutes]
+                  SongGenreRoutes, SongRoutes, BloomFilterRoutes, IdmRoutes]
         for route in routes:
             self.__app.include_router(route().router)
 

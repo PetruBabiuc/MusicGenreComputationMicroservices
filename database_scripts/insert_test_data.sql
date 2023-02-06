@@ -1,12 +1,22 @@
 USE licenta;
 
-INSERT INTO user_type VALUES(DEFAULT, 'user');
 INSERT INTO user_type VALUES(DEFAULT, 'admin');
+INSERT INTO user_type VALUES(DEFAULT, 'microservice');
+INSERT INTO user_type VALUES(DEFAULT, 'user');
 
-INSERT INTO user VALUES(DEFAULT, 'crawler_user_1', 'password', 1, TRUE);
-INSERT INTO user VALUES(DEFAULT, 'crawler_user_2', 'password', 1, TRUE);
-INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_1', 'password', 1, TRUE);
-INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_2', 'password', 1, TRUE);
+-- Bcrypt hashed passwords
+-- password = admin
+INSERT INTO user VALUES(DEFAULT, 'admin', '$2a$12$H8gj9A6bWAzrtaxvx2a6tuDsIE69cV4qX4I/K7jIjoZRM0tdCIIim', 1, TRUE);
+
+-- password = microservice
+INSERT INTO user VALUES(DEFAULT, 'microservice', '$2a$12$XQ2093DlI9OOAHjS2Rh.OOvkEb/ToguaFkubHPBiqPH/JprQxzy3C', 2, TRUE);
+
+-- password = password
+SET @password = '$2a$12$m1iZTjdGI.5fUjBjxOp41.6i0tyB7V19yrRwzdRvmV5y0zkapMjkC';
+INSERT INTO user VALUES(DEFAULT, 'crawler_user_1', @password, 3, TRUE);
+INSERT INTO user VALUES(DEFAULT, 'crawler_user_2', @password, 3, TRUE);
+INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_1', @password, 3, TRUE);
+INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_2', @password, 3, TRUE);
 
 INSERT INTO service VALUES(DEFAULT, 'genre_computation', 50.0);
 INSERT INTO service VALUES(DEFAULT, 'crawled_resource', 2.0);

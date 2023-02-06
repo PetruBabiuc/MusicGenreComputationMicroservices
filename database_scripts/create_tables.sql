@@ -1,3 +1,6 @@
+-- CREATE USER 'crud_user'@'localhost' IDENTIFIED BY 'crud_user_password';
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON licenta.* TO 'crud_user'@'localhost' WITH GRANT OPTION;
+
 USE licenta;
 CREATE TABLE user_type (
 	user_type_id INT auto_increment NULL,

@@ -17,6 +17,11 @@ class PathParamNames:
 USERS_PATH = f'{RESOURCE_BASE_PATH}/users'
 USER_BY_ID_PATH = f'{RESOURCE_BASE_PATH}/users/{{{PathParamNames.USER_ID}}}'
 
+# Identity management
+LOGIN_PATH = f'{RESOURCE_BASE_PATH}/login'
+LOGOUT_PATH = f'{RESOURCE_BASE_PATH}/logout'
+VALIDATE_JWT_PATH = f'{RESOURCE_BASE_PATH}/validate-jwt'
+
 # Services
 SERVICES_PATH = f'{RESOURCE_BASE_PATH}/services'
 USER_BY_ID_SERVICES_PATH = f'{USER_BY_ID_PATH}/services'

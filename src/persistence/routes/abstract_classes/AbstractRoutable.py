@@ -1,6 +1,5 @@
-from abc import ABCMeta
-
 from classy_fastapi import Routable
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -8,6 +7,8 @@ import config.database
 
 
 class AbstractRoutable(Routable):
+    OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="token")
+
     def __init__(self):
         super().__init__()
 
