@@ -31,7 +31,10 @@ class IdmRoutes(AbstractSecuredRoutable):
         password = body[self.__PASSWORD_FIELD]
 
         session = self._create_session()
-        user: User = session.query(User).filter_by(user_name=user_name).one()
+        user: User = session.query(User).filter_by(user_name=user_name).first()
+
+        if user is None:
+            raise HTTPException(401, 'Invalid credentials!')
 
         if not self.__password_manager.verify_password(password, user.password):
             raise HTTPException(401, 'Invalid credentials!')

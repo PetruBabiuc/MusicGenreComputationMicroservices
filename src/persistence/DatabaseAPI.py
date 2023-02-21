@@ -2,8 +2,9 @@ from typing import Callable
 
 import uvicorn
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
-from config import database_api
+from config import database_api, front_end
 from src.AbstractMicroservice import AbstractMicroservice
 from src.persistence.routes.BloomFilterRoutes import BloomFilterRoutes
 from src.persistence.routes.CrawlerGeneralStateRoutes import CrawlerGeneralStateRoutes
@@ -20,6 +21,19 @@ class DatabaseAPI(AbstractMicroservice):
     def __init__(self, name: str = 'DatabaseAPI', log_func: Callable[[str], None] = print):
         super().__init__(name, log_func)
         self.__app = FastAPI()
+
+        origins = [
+            front_end.BASE_URL
+        ]
+
+        self.__app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_credentials=True,
+            allow_methods=['*'],
+            allow_headers=['*'],
+        )
+
         routes = [UserRoutes, CrawlerGeneralStateRoutes, ResourceUrlRoutes, SongUrlRoutes, ServiceRoutes,
                   SongGenreRoutes, SongRoutes, BloomFilterRoutes, IdmRoutes]
         for route in routes:
