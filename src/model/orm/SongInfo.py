@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, String
 
 from src.helpers.ModelUtils import Base
+from src.model.orm.SongFormat import SongFormat
 
 
 class SongInfo(Base):
@@ -8,7 +9,7 @@ class SongInfo(Base):
 
     song_id = Column(Integer, ForeignKey('song.song_id'), primary_key=True)
     author = Column(String)
-    original_format_id = Column(Integer, ForeignKey('format.format_id'))
+    original_format_id = Column(Integer, ForeignKey('song_format.format_id'))
 
     def __init__(self, song_id, author, original_format_id):
         self.song_id = song_id

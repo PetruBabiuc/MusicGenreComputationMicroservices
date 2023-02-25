@@ -122,8 +122,8 @@ class DatabaseApiProxy:
         if genre_id is not None:
             kwargs['params'] = {'genre_id': genre_id}
         return self.__get(SONGS_URLS_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), **kwargs).json()
+            PathParamNames.USER_ID: user_id
+        }), **kwargs).json()
 
     def get_crawler_resources_urls(self, user_id: int, *, limit: int = None) -> list[dict[str, Any]]:
         kwargs = {}
@@ -135,8 +135,8 @@ class DatabaseApiProxy:
 
     def delete_bloom_filter(self, user_id: int) -> Response:
         return self.__delete(BLOOM_FILTER_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }))
+            PathParamNames.USER_ID: user_id
+        }))
 
     def bulk_delete_crawler_resources_urls(self, user_id: int, resources_ids: list[int]) -> Response:
         return self.__post(CRAWLER_RESOURCES_URLS_BULK_DELETE_PATH.format(**{
@@ -145,35 +145,41 @@ class DatabaseApiProxy:
 
     def patch_crawler_state(self, user_id: int, body: dict[str, Any]) -> Response:
         return self.__patch(CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json=body)
+            PathParamNames.USER_ID: user_id
+        }), json=body)
 
     def put_bloom_filter(self, user_id: int, bloom_filter: str) -> Response:
         return self.__put(BLOOM_FILTER_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json={'value': bloom_filter})
+            PathParamNames.USER_ID: user_id
+        }), json={'value': bloom_filter})
 
     def bulk_add_crawler_resources_urls(self, user_id: int, resources_urls: list[str]) -> Response:
         return self.__post(CRAWLER_RESOURCES_URLS_BULK_ADD_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json=resources_urls)
+            PathParamNames.USER_ID: user_id
+        }), json=resources_urls)
 
     def bulk_add_songs_urls(self, user_id: int, genre_id_to_songs_urls: dict[str, list[str]]) -> Response:
         return self.__post(SONGS_URLS_BULK_ADD_PATH.format(**{
             PathParamNames.USER_ID: user_id
         }), json=genre_id_to_songs_urls)
 
-    def post_song(self, user_id: int, song_name: str, genre_id: int) -> Response:
-        return self.__post(SONGS_PATH, json={
+    def post_song(self, user_id: int, song_name: str, genre_id: int, author: str = None, original_format_id: int = None) -> Response:
+        body = {
             'user_id': user_id,
             'song_name': song_name,
             'genre_id': genre_id
-        })
+        }
+        if author is not None and original_format_id is not None:
+            body['song_info'] = {
+                'author': author,
+                'original_format_id': original_format_id
+            }
+        return self.__post(SONGS_PATH, json=body)
 
     def delete_song(self, song_id: int) -> Response:
         return self.__delete(SONG_BY_ID_PATH.format(**{
-                PathParamNames.SONG_ID: song_id
-            }))
+            PathParamNames.SONG_ID: song_id
+        }))
 
     def get_crawler_resources_urls_count(self, user_id: int) -> dict[str, Any]:
         return self.__get(CRAWLER_RESOURCES_URLS_COUNT_PATH.format(**{
@@ -187,19 +193,21 @@ class DatabaseApiProxy:
 
     def put_crawler_state(self, user_id: int, body: dict[str, Any]) -> Response:
         return self.__put(CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json=body)
+            PathParamNames.USER_ID: user_id
+        }), json=body)
 
     def post_crawler_resource_url(self, user_id: int, url: str) -> Response:
         return self.__post(CRAWLER_RESOURCES_URLS_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json={'resource_url': url})
+            PathParamNames.USER_ID: user_id
+        }), json={'resource_url': url})
 
     def post_crawler_song_url(self, user_id: int, song_url: str, genre_id: int) -> Response:
         return self.__post(SONGS_URLS_PATH.format(**{
-                PathParamNames.USER_ID: user_id
-            }), json={
+            PathParamNames.USER_ID: user_id
+        }), json={
             'genre_id': genre_id,
             'song_url': song_url
         })
 
+    def validate_jwt(self, jwt: str) -> bool:
+        return self.__post(VALIDATE_JWT_PATH, json={'jwt': jwt}).json()['status'] == 'valid'

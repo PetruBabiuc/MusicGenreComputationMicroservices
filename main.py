@@ -17,7 +17,7 @@ from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrog
 from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
 from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
 from src.persistence.DatabaseAPI import DatabaseAPI
-from src.presentation.Controller import DebugController, Controller
+from src.presentation.song_adder_controller.SongAdderController import SongAdderController
 
 
 @dataclass
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     if debug:
         microservices_info = (
             # Presentation
-            ReplicationInfo(DebugController, 1, 'Controller', (output_dir,)),
+            ReplicationInfo(SongAdderController, 1, 'Controller', (output_dir,)),
 
             # Logic business
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
@@ -70,7 +70,7 @@ if __name__ == '__main__':
             ReplicationInfo(DatabaseAPI, 1, 'DatabaseAPI', ()),
 
             # Presentation
-            ReplicationInfo(Controller, 1, 'Controller', ()),
+            ReplicationInfo(SongAdderController, 1, 'Controller', ()),
 
             # Logic business
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
@@ -110,5 +110,3 @@ if __name__ == '__main__':
     except BaseException:
         for p in processes:
             p.kill()
-
-    

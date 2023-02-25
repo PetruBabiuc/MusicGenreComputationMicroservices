@@ -15,7 +15,7 @@ class PathParamNames:
 
 # Users
 USERS_PATH = f'{RESOURCE_BASE_PATH}/users'
-USER_BY_ID_PATH = f'{RESOURCE_BASE_PATH}/users/{{{PathParamNames.USER_ID}}}'
+USER_BY_ID_PATH = f'{USERS_PATH}/{{{PathParamNames.USER_ID}}}'
 
 # Identity management
 LOGIN_PATH = f'{RESOURCE_BASE_PATH}/login'
@@ -31,6 +31,7 @@ USER_BY_ID_SERVICE_BY_ID_PATH = f'{USER_BY_ID_SERVICES_PATH}/{{{PathParamNames.S
 SONGS_PATH = f'{RESOURCE_BASE_PATH}/songs'
 SONGS_GENRES_PATH = f'{RESOURCE_BASE_PATH}/songs-genres'
 SONG_BY_ID_PATH = f'{SONGS_PATH}/{{{PathParamNames.SONG_ID}}}'
+SONGS_OF_USER = f'{USER_BY_ID_PATH}/songs'
 
 # Crawler paths
 CRAWLER_GENERAL_STATE_BY_ID_PATH = f'{USER_BY_ID_PATH}/crawler'

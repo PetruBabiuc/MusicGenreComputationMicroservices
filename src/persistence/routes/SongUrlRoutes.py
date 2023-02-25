@@ -10,15 +10,14 @@ import config.database_api as api_paths
 from config.user_types import ADMIN, MICROSERVICE, USER
 from src.helpers.ModelUtils import orm_to_dict
 from src.model.orm.SongUrl import SongUrl
-from src.persistence.routes.abstract_classes.AbstractRoutable import AbstractRoutable
-from src.persistence.routes.abstract_classes.AbstractSecuredRoutable import AbstractSecuredRoutable
+from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
 
 
-class SongUrlRoutes(AbstractSecuredRoutable):
+class SongUrlRoutes(AbstractSecuredDatabaseApiRoutable):
     @get(api_paths.SONGS_URLS_PATH)
     def get_songs_urls(self, user_id: int, genre_id: int = None,
-                       token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        payload = self._assert_has_user_type_in(token, [ADMIN, MICROSERVICE, USER])
+                       token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        payload = self._jwt_manager.assert_has_user_type_in(token, [ADMIN, MICROSERVICE, USER])
         if payload['user_type_id'] == USER and payload['user_id'] != user_id:
             raise HTTPException(HTTPStatus.FORBIDDEN)
 
@@ -36,8 +35,8 @@ class SongUrlRoutes(AbstractSecuredRoutable):
 
     @get(api_paths.SONGS_URLS_COUNT_PATH)
     def get_songs_urls_count(self, user_id: int,
-                             token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                             token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         count = session.query(SongUrl).filter_by(user_id=user_id).count()
@@ -45,8 +44,8 @@ class SongUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.SONGS_URLS_PATH)
     def post_song_url(self, user_id: int, body: dict[str, Any] = Body(),
-                      token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                      token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         song_url = SongUrl(**body)
@@ -57,8 +56,8 @@ class SongUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.SONGS_URLS_BULK_ADD_PATH)
     def bulk_add_songs_urls(self, user_id: int, songs_urls: dict[str, list[str]] = Body(),
-                            token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                            token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         songs_urls = seq(songs_urls.items()) \
@@ -74,8 +73,8 @@ class SongUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.SONGS_URLS_BULK_DELETE_PATH)
     def bulk_delete_songs_urls(self, user_id: int, songs_urls_ids: list[int] = Body(),
-                               token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                               token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         session.query(SongUrl)\

@@ -11,14 +11,13 @@ import config.database_api as api_paths
 from config.user_types import MICROSERVICE
 from src.helpers.ModelUtils import dict_to_orm
 from src.model.orm.CrawlerState import CrawlerState
-from src.persistence.routes.abstract_classes.AbstractRoutable import AbstractRoutable
-from src.persistence.routes.abstract_classes.AbstractSecuredRoutable import AbstractSecuredRoutable
+from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
 
 
-class CrawlerGeneralStateRoutes(AbstractSecuredRoutable):
+class CrawlerGeneralStateRoutes(AbstractSecuredDatabaseApiRoutable):
     @get(api_paths.CRAWLER_GENERAL_STATE_BY_ID_PATH)
-    def get_crawler_state(self, user_id: int, token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+    def get_crawler_state(self, user_id: int, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         crawler_state = session.get(CrawlerState, user_id)
@@ -28,8 +27,8 @@ class CrawlerGeneralStateRoutes(AbstractSecuredRoutable):
 
     @put(api_paths.CRAWLER_GENERAL_STATE_BY_ID_PATH)
     def put_crawler_state(self, user_id: int, state: dict[str, Any] = Body(),
-                          token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                          token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         if 'user_id' in state:
             raise HTTPException(HTTPStatus.UNPROCESSABLE_ENTITY)
@@ -52,8 +51,8 @@ class CrawlerGeneralStateRoutes(AbstractSecuredRoutable):
 
     @patch(api_paths.CRAWLER_GENERAL_STATE_BY_ID_PATH)
     def patch_crawler_state(self, user_id: int, body: dict[str, Any] = Body(),
-                            token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                            token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         try:
@@ -64,8 +63,8 @@ class CrawlerGeneralStateRoutes(AbstractSecuredRoutable):
             raise HTTPException(HTTPStatus.UNPROCESSABLE_ENTITY)
 
     @delete(api_paths.CRAWLER_GENERAL_STATE_BY_ID_PATH)
-    def delete_crawler_state(self, user_id: int, token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+    def delete_crawler_state(self, user_id: int, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         state = session.get(CrawlerState, user_id)

@@ -22,17 +22,17 @@ INSERT INTO service VALUES(DEFAULT, 'genre_computation', 50.0);
 INSERT INTO service VALUES(DEFAULT, 'crawled_resource', 2.0);
 
 -- user_id, service_id, quantity
-INSERT INTO user_to_service VALUES(1, 1, 0);
-INSERT INTO user_to_service VALUES(1, 2, 0);
-
-INSERT INTO user_to_service VALUES(2, 1, 0);
-INSERT INTO user_to_service VALUES(2, 2, 0);
-
 INSERT INTO user_to_service VALUES(3, 1, 0);
 INSERT INTO user_to_service VALUES(3, 2, 0);
 
 INSERT INTO user_to_service VALUES(4, 1, 0);
 INSERT INTO user_to_service VALUES(4, 2, 0);
+
+INSERT INTO user_to_service VALUES(5, 1, 0);
+INSERT INTO user_to_service VALUES(5, 2, 0);
+
+INSERT INTO user_to_service VALUES(6, 1, 0);
+INSERT INTO user_to_service VALUES(6, 2, 0);
 
 INSERT INTO song_format VALUES(DEFAULT, 'MP3');
 
@@ -44,8 +44,8 @@ INSERT INTO song_genre VALUES(DEFAULT, 'Instrumental');
 INSERT INTO song_genre VALUES(DEFAULT, 'Folk');
 INSERT INTO song_genre VALUES(DEFAULT, 'Computing...'); 
 
-INSERT INTO song VALUES(DEFAULT, 4, 2, 'Umbrella');
-INSERT INTO song VALUES(DEFAULT, 4, 1, 'Memories');
+INSERT INTO song VALUES(DEFAULT, 5, 2, 'Umbrella');
+INSERT INTO song VALUES(DEFAULT, 5, 1, 'Memories');
 
 INSERT INTO song_info VALUES(1, 'Rihanna', 1);
 INSERT INTO song_info VALUES(2, 'David Guetta', 1);

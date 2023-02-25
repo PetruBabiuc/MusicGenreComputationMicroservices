@@ -8,15 +8,14 @@ import config.database_api as api_paths
 from config.user_types import MICROSERVICE
 from src.helpers.ModelUtils import orm_to_dict
 from src.model.orm.ResourceUrl import ResourceUrl
-from src.persistence.routes.abstract_classes.AbstractRoutable import AbstractRoutable
-from src.persistence.routes.abstract_classes.AbstractSecuredRoutable import AbstractSecuredRoutable
+from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
 
 
-class ResourceUrlRoutes(AbstractSecuredRoutable):
+class ResourceUrlRoutes(AbstractSecuredDatabaseApiRoutable):
     @get(api_paths.CRAWLER_RESOURCES_URLS_PATH)
     def get_resources_urls(self, user_id: int, limit: int = None,
-                           token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                           token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         query = session.query(ResourceUrl).filter_by(user_id=user_id)
@@ -30,8 +29,8 @@ class ResourceUrlRoutes(AbstractSecuredRoutable):
 
     @get(api_paths.CRAWLER_RESOURCES_URLS_COUNT_PATH)
     def get_resources_urls_count(self, user_id: int,
-                                 token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                                 token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         count = session.query(ResourceUrl).filter_by(user_id=user_id).count()
@@ -39,8 +38,8 @@ class ResourceUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.CRAWLER_RESOURCES_URLS_PATH)
     def post_url_resource(self, user_id: int, body: dict[str, Any] = Body(),
-                          token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                          token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         resource_url = ResourceUrl(user_id=user_id, **body)
@@ -50,8 +49,8 @@ class ResourceUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.CRAWLER_RESOURCES_URLS_BULK_DELETE_PATH)
     def bulk_delete_resources_urls(self, user_id: int, resources_urls_ids: list[int] = Body(),
-                                   token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                                   token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         session.query(ResourceUrl)\
@@ -62,8 +61,8 @@ class ResourceUrlRoutes(AbstractSecuredRoutable):
 
     @post(api_paths.CRAWLER_RESOURCES_URLS_BULK_ADD_PATH)
     def bulk_post_resources_urls(self, user_id: int, resources_urls: list[str] = Body(),
-                                 token: str = Depends(AbstractRoutable.OAUTH2_SCHEME)):
-        self._assert_has_user_type(token, MICROSERVICE)
+                                 token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         resources_urls = [ResourceUrl(user_id=user_id, resource_url=url) for url in resources_urls]

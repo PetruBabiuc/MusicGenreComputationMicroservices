@@ -4,10 +4,7 @@ from threading import Thread
 from typing import Callable, Any
 from urllib.parse import urlparse
 
-import requests
-
 from config import constants, controller, genre_computer_request_manager, crawler_engine
-from config.database_api import *
 from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.redis import CONTROLLER_TOPIC
 from src.AbstractMicroservice import AbstractMicroservice

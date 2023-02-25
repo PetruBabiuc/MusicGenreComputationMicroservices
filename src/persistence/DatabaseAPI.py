@@ -1,11 +1,6 @@
 from typing import Callable
 
-import uvicorn
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
-
-from config import database_api, front_end
-from src.AbstractMicroservice import AbstractMicroservice
+from config import database_api
 from src.persistence.routes.BloomFilterRoutes import BloomFilterRoutes
 from src.persistence.routes.CrawlerGeneralStateRoutes import CrawlerGeneralStateRoutes
 from src.persistence.routes.IdmRoutes import IdmRoutes
@@ -15,32 +10,15 @@ from src.persistence.routes.SongGenreRoutes import SongGenreRoutes
 from src.persistence.routes.SongRoutes import SongRoutes
 from src.persistence.routes.SongUrlRoutes import SongUrlRoutes
 from src.persistence.routes.UserRoutes import UserRoutes
+from src.presentation.abstract_classes.AbstractFastApiController import AbstractFastApiController
 
 
-class DatabaseAPI(AbstractMicroservice):
+class DatabaseAPI(AbstractFastApiController):
     def __init__(self, name: str = 'DatabaseAPI', log_func: Callable[[str], None] = print):
-        super().__init__(name, log_func)
-        self.__app = FastAPI()
+        routes = [UserRoutes(), CrawlerGeneralStateRoutes(), ResourceUrlRoutes(), SongUrlRoutes(), ServiceRoutes(),
+                  SongGenreRoutes(), SongRoutes(), BloomFilterRoutes(), IdmRoutes()]
 
-        origins = [
-            front_end.BASE_URL
-        ]
-
-        self.__app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=['*'],
-            allow_headers=['*'],
-        )
-
-        routes = [UserRoutes, CrawlerGeneralStateRoutes, ResourceUrlRoutes, SongUrlRoutes, ServiceRoutes,
-                  SongGenreRoutes, SongRoutes, BloomFilterRoutes, IdmRoutes]
-        for route in routes:
-            self.__app.include_router(route().router)
-
-    def run(self) -> None:
-        uvicorn.run(self.__app, host=database_api.API_HOST, port=database_api.API_PORT)
+        super().__init__(routes, name, database_api.API_HOST, database_api.API_PORT, log_func)
 
 
 if __name__ == '__main__':

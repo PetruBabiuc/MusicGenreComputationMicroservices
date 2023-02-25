@@ -6,6 +6,7 @@ from jose import jwt, JWTError
 
 from config.jwt import *
 
+
 class JwtManager:
     def create_jwt(self, claims: dict[str, Any]) -> str:
         claims = claims.copy()
