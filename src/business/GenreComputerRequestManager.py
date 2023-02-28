@@ -6,7 +6,7 @@ from uuid import uuid4
 import requests
 
 import config.crawler_genre_obtainer as crawler
-from config import controller
+from config import song_adder_controller
 from config.database_api import *
 from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.genre_computer_request_manager import HOST, REQUESTS_PORT, RESULTS_PORT
@@ -142,7 +142,7 @@ class GenreComputerRequestManager(AbstractMicroservice):
         del result['source']
 
         if source == 'Controller':
-            self.__route_dict_response_as_json(controller.HOST, controller.GENRE_COMPUTATION_PORT, result)
+            self.__route_dict_response_as_json(song_adder_controller.HOST, song_adder_controller.GENRE_COMPUTATION_PORT, result)
         elif source == 'Crawler':
             self.__route_dict_response_as_json(crawler.HOST, crawler.COMPUTATION_RESULTS_PORT, result)
 

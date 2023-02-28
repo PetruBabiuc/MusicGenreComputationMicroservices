@@ -81,7 +81,7 @@ CREATE TABLE crawler_state (
   domain varchar(100) NOT NULL,
   max_crawled_resources int(11) DEFAULT NULL,
   max_computed_genres int(11) NOT NULL DEFAULT 0,
-  finished tinyint(1) NOT NULL DEFAULT 0,
+--   finished tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id),
   CONSTRAINT crawler_state_desired_genre_id_FK FOREIGN KEY (desired_genre_id) REFERENCES song_genre(song_genre_id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT crawler_state_user_id_FK FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE ON UPDATE CASCADE

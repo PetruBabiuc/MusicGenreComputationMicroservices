@@ -98,7 +98,7 @@ class AbstractSpider(metaclass=ABCMeta):
                     found_urls, url_should_be_processed = resource_processor.process_resource(url_to_process,
                                                                                               state.domain)
                     found_urls = list(filter(lambda it: it not in state.bloom_filter, found_urls))
-                    state.queue.extendleft(found_urls)
+                    state.queue.extend(found_urls)
                     state.bloom_filter.update(found_urls)
                     if url_should_be_processed:
                         items_to_process.append(url_to_process)

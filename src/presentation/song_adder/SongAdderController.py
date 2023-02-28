@@ -2,29 +2,29 @@ from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 from typing import Callable
 
-from config import controller, constants, genre_computer_request_manager
+from config import song_adder_controller, constants, genre_computer_request_manager
 from config.redis import CONTROLLER_TOPIC
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 from src.helpers.Mp3ValidatorProxy import Mp3ValidatorProxy
 from src.helpers.SocketJsonMessageAwaiter import SocketJsonMessageAwaiter
 from src.presentation.abstract_classes.AbstractFastApiController import AbstractFastApiController
-from src.presentation.song_adder_controller.routes.SongRoutes import SongRoutes
+from src.presentation.song_adder.routes.SongRoutes import SongRoutes
 
 
 class SongAdderController(AbstractFastApiController):
     def __init__(self, name: str = 'SongAdderController', log_func: Callable[[str], None] = print):
         self.__genre_computation_results_awaiter: SocketJsonMessageAwaiter[int] = SocketJsonMessageAwaiter(
-            controller.HOST, controller.GENRE_COMPUTATION_PORT, 'song_id')
+            song_adder_controller.HOST, song_adder_controller.GENRE_COMPUTATION_PORT, 'song_id')
 
         log_func(f'[{name}] ServerSocket for computation results '
-                 f'opened on {controller.HOST}:{controller.GENRE_COMPUTATION_PORT}!')
+                 f'opened on {song_adder_controller.HOST}:{song_adder_controller.GENRE_COMPUTATION_PORT}!')
 
         self.__mp3_validator_proxy = Mp3ValidatorProxy(CONTROLLER_TOPIC, 'song_id')
 
         song_routes = SongRoutes(self.__check_if_song_is_valid, self.__compute_genre)
 
-        super().__init__([song_routes], name, controller.HOST, controller.CLIENT_PORT, log_func)
+        super().__init__([song_routes], name, song_adder_controller.HOST, song_adder_controller.CLIENT_PORT, log_func)
 
     def __check_if_song_is_valid(self, song_id: int, song_bytes: bytes) -> bool:
         base64_string_song = Base64Converter.bytes_to_string(song_bytes)
@@ -61,7 +61,7 @@ class SongAdderController(AbstractFastApiController):
     def run(self) -> None:
         Thread(target=self.__genre_computation_results_awaiter.start_receiving_responses).start()
         self._log_func(f'[{self._name}] Started receiving genre computation results on '
-                       f'{controller.HOST}:{controller.GENRE_COMPUTATION_PORT}')
+                       f'{song_adder_controller.HOST}:{song_adder_controller.GENRE_COMPUTATION_PORT}')
         super().run()
 
 

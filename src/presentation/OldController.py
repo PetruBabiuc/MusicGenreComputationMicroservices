@@ -4,7 +4,8 @@ from threading import Thread
 from typing import Callable, Any
 from urllib.parse import urlparse
 
-from config import constants, controller, genre_computer_request_manager, crawler_engine
+import config.crawler_management_controller
+from config import constants, genre_computer_request_manager, crawler_engine
 from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.redis import CONTROLLER_TOPIC
 from src.AbstractMicroservice import AbstractMicroservice
@@ -29,7 +30,7 @@ class Controller(AbstractMicroservice):
             controller.HOST, controller.GENRE_COMPUTATION_PORT, 'song_id')
 
         self.__crawling_results_awaiter: SocketJsonMessageAwaiter[int] = SocketJsonMessageAwaiter(
-            controller.HOST, controller.CRAWLER_RESPONSES_PORT, 'client_id'
+            controller.HOST, config.crawler_management_controller.CRAWLER_RESPONSES_PORT, 'client_id'
         )
 
         self.__mp3_validator_proxy = Mp3ValidatorProxy(CONTROLLER_TOPIC, 'song_id')

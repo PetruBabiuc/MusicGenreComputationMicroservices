@@ -63,7 +63,8 @@ class CrawlerGeneralStateRoutes(AbstractSecuredDatabaseApiRoutable):
             raise HTTPException(HTTPStatus.UNPROCESSABLE_ENTITY)
 
     @delete(api_paths.CRAWLER_GENERAL_STATE_BY_ID_PATH)
-    def delete_crawler_state(self, user_id: int, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+    def delete_crawler_state(self, user_id: int,
+                             token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
         self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()

@@ -4,7 +4,7 @@ import time
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Thread
 
-from config.controller import CLIENT_PORT, HOST
+from config.song_adder_controller import CLIENT_PORT, HOST
 from src.helpers import Base64Converter
 from src.helpers.HighLevelSocketWrapper import HighLevelSocketWrapper
 

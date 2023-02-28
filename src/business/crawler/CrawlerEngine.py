@@ -8,7 +8,8 @@ from urllib.parse import urljoin
 
 import requests
 
-from config import controller
+import config.crawler_management_controller
+from config import song_adder_controller
 from config.constants import LOGGED_URLS, REQUEST_TIMEOUT
 from config.crawler_engine import HOST as CRAWLER_HOST, PORT as CRAWLER_PORT
 from config.database_api import *
@@ -205,7 +206,8 @@ class CrawlerEngine(AbstractMicroservice):
 
     def __send_response_to_controller(self, response: dict[str, Any]) -> None:
         client_socket = HighLevelSocketWrapper(socket(AF_INET, SOCK_STREAM))
-        client_socket.connect((controller.HOST, controller.CRAWLER_RESPONSES_PORT))
+        client_socket.connect((config.crawler_management_controller.HOST,
+                               config.crawler_management_controller.CRAWLER_RESPONSES_PORT))
         client_socket.send_dict_as_json(response)
         client_socket.close()
         response_to_print = dict(response)

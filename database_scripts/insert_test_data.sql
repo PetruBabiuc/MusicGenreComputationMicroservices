@@ -50,5 +50,5 @@ INSERT INTO song VALUES(DEFAULT, 5, 1, 'Memories');
 INSERT INTO song_info VALUES(1, 'Rihanna', 1);
 INSERT INTO song_info VALUES(2, 'David Guetta', 1);
 
-INSERT INTO crawler_state VALUES(1, 1, 'http://google.com/', 99, 88, FALSE);
+INSERT INTO crawler_state VALUES(1, 1, 'http://google.com/', 99, 88);
 INSERT INTO bloom_filter VALUES(1, 'BIG BASE64 STRING');

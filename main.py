@@ -17,7 +17,8 @@ from src.business.genre_predictor_pipeline.SpectrogramMaker import DebugSpectrog
 from src.business.genre_predictor_pipeline.SpectrogramQueue import DebugSpectrogramQueue, SpectrogramQueue
 from src.business.genre_predictor_pipeline.SpectrogramSlicer import DebugSpectrogramSlicer, SpectrogramSlicer
 from src.persistence.DatabaseAPI import DatabaseAPI
-from src.presentation.song_adder_controller.SongAdderController import SongAdderController
+from src.presentation.crawler_management.CrawlerManagementController import CrawlerManagementController
+from src.presentation.song_adder.SongAdderController import SongAdderController
 
 
 @dataclass
@@ -37,13 +38,14 @@ if __name__ == '__main__':
     dnn_path = 'dnn/musicDNN.tflearn'
     debug = False
 
-    # The following microservices open one or more ServerSocket => Instantiate once at most:
-    # Controller, SpectrogramFilter, SpectrogramQueue, SliceGenreAggregator,
-    # SongGenreObtainer, GenreComputerRequestManager
+    # The following microservices open one or more ServerSockets => Instantiate once at most:
+    # SongAdderController, CrawlerManagementController, SpectrogramFilter, SpectrogramQueue,
+    # SliceGenreAggregator, SongGenreObtainer, GenreComputerRequestManager
     if debug:
         microservices_info = (
             # Presentation
-            ReplicationInfo(SongAdderController, 1, 'Controller', (output_dir,)),
+            ReplicationInfo(SongAdderController, 1, 'Controller', ()),
+            ReplicationInfo(CrawlerManagementController, 1, 'Controller', ()),
 
             # Logic business
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),
@@ -70,7 +72,8 @@ if __name__ == '__main__':
             ReplicationInfo(DatabaseAPI, 1, 'DatabaseAPI', ()),
 
             # Presentation
-            ReplicationInfo(SongAdderController, 1, 'Controller', ()),
+            ReplicationInfo(SongAdderController, 1, 'SongAdderController', ()),
+            ReplicationInfo(CrawlerManagementController, 1, 'CrawlerManagementController', ()),
 
             # Logic business
             ReplicationInfo(GenreComputerRequestManager, 1, 'GenreComputerRequestManager', ()),

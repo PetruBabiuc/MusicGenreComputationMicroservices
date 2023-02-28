@@ -144,6 +144,7 @@ class DatabaseApiProxy:
         }), json=resources_ids)
 
     def patch_crawler_state(self, user_id: int, body: dict[str, Any]) -> Response:
+        body = {k: v for k, v in body.items() if v is not None}
         return self.__patch(CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
             PathParamNames.USER_ID: user_id
         }), json=body)
@@ -163,7 +164,8 @@ class DatabaseApiProxy:
             PathParamNames.USER_ID: user_id
         }), json=genre_id_to_songs_urls)
 
-    def post_song(self, user_id: int, song_name: str, genre_id: int, author: str = None, original_format_id: int = None) -> Response:
+    def post_song(self, user_id: int, song_name: str, genre_id: int, author: str = None,
+                  original_format_id: int = None) -> Response:
         body = {
             'user_id': user_id,
             'song_name': song_name,

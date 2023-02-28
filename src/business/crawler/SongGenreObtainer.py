@@ -106,6 +106,9 @@ class SongGenreObtainer(AbstractMicroservice):
             # TODO: REMOVE DEBUG CODE
             # result = {'genre': random.choice(GENRES)}
 
+            self.__database_proxy.patch_crawler_state(client_id, {'max_computed_genres': max_computed_genres - 1})
+
+            # TODO: REMOVE OLD CODE
             # quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
             #     'user_id': client_id,
             #     'service_id': self.__genre_computation_service_id

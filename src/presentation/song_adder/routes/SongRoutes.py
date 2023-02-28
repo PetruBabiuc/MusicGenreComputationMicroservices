@@ -3,8 +3,10 @@ from typing import Callable
 from classy_fastapi import post
 from fastapi import Depends, Form, File, UploadFile, HTTPException
 from starlette import status
+from starlette.responses import JSONResponse
+from starlette.status import HTTP_201_CREATED
 
-import config.controller as controller
+import config.song_adder_controller as controller
 from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.user_types import USER
 from src.helpers.DatabaseApiProxy import DatabaseApiProxy
@@ -45,4 +47,4 @@ class SongRoutes(AbstractSecuredRoutable):
 
         message = self.__compute_genre_func(song_id, song_bytes)
 
-        return message
+        return JSONResponse(message, HTTP_201_CREATED)

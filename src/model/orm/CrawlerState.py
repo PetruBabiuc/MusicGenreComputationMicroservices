@@ -11,7 +11,6 @@ class CrawlerState(Base):
     domain = Column(String)
     max_crawled_resources = Column(Integer)
     max_computed_genres = Column(Integer)
-    finished = Column(Boolean)
 
     def __init__(self, user_id, desired_genre_id, domain, max_crawled_resources, max_computed_genres, finished=False):
         self.user_id = user_id
