@@ -1,5 +1,10 @@
--- CREATE USER 'crud_user'@'localhost' IDENTIFIED BY 'crud_user_password';
--- GRANT SELECT, INSERT, UPDATE, DELETE ON licenta.* TO 'crud_user'@'localhost' WITH GRANT OPTION;
+-- CREATE DATABASE licenta;
+-- CREATE USER 'petru-admin'@'%' IDENTIFIED BY 'petru-admin';
+-- GRANT ALL PRIVILEGES ON licenta.* TO 'petru-admin'@'%' WITH GRANT OPTION;
+-- 
+-- CREATE USER 'crud_user'@'%' IDENTIFIED BY 'crud_user_password';
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON licenta.* TO 'crud_user'@'%' WITH GRANT OPTION;
+-- FLUSH PRIVILEGES;
 
 USE licenta;
 CREATE TABLE user_type (

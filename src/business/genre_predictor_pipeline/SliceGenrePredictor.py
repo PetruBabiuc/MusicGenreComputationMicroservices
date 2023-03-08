@@ -59,6 +59,6 @@ class DebugSliceGenrePredictor(SliceGenrePredictor):
 
 
 if __name__ == '__main__':
-    dnn_relative_path = '../../dnn/musicDNN.tflearn'
+    dnn_relative_path = '../../../dnn/musicDNN.tflearn'
     # SliceGenrePredictor(dnn_path).run()
     DebugSliceGenrePredictor(dnn_relative_path, '../../../debug_files/').run()

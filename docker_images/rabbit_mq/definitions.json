@@ -1,0 +1,201 @@
+{
+  "users": [
+    {
+      "name": "student",
+      "password_hash": "fdEnJLxvzwF/RuVh+GQ6NF68iBPw4nZYKtIL+qvIyZGCfT1Q",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    },
+    {
+      "name": "guest",
+      "password_hash": "hIu11i8dpUFwnDgRGoei7u2r2/pcAi0WnL7OTkfBg5ZiXUmO",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "student",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "cluster_name",
+      "value": "rabbit@sagemcom.home"
+    },
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-KKqRLer6avV77sTJ4zVaQw"
+    }
+  ],
+  "policies": [],
+  "queues": [
+    {
+      "name": "licenta.slicesDataQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.songUrlProcessorReturnQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.slicesQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.mp3VerifierQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.spiderRestoreStateQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.songUrlProcessorRestoreState",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.spiderReturnQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "licenta.songsQueue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "licenta.direct",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.mp3VerifierQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.mp3VerifierQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.slicesDataQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.slicesDataQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.slicesQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.slicesQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.songUrlProcessorRestoreState",
+      "destination_type": "queue",
+      "routing_key": "licenta.songUrlProcessorRestoreState.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.songUrlProcessorReturnQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.songUrlProcessorReturnQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.songsQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.songsQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.spiderRestoreStateQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.spiderRestoreStateQueue.routingKey",
+      "arguments": {}
+    },
+    {
+      "source": "licenta.direct",
+      "vhost": "/",
+      "destination": "licenta.spiderReturnQueue",
+      "destination_type": "queue",
+      "routing_key": "licenta.spiderReturnQueue.routingKey",
+      "arguments": {}
+    }
+  ]
+}

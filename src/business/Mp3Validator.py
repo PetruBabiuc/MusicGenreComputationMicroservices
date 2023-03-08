@@ -7,16 +7,14 @@ from redis.client import StrictRedis
 
 from config import redis
 from config.constants import MAX_SONG_LENGTH, MIN_SONG_LENGTH
+from config.mp3_validator import SOURCE_TO_TOPIC
 from config.rabbit_mq import MP3_VERIFIER_QUEUE
-from config.redis import CONTROLLER_TOPIC, SPIDER_TOPIC
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
 from src.helpers.RabbitMqConsumer import RabbitMqConsumer
 
 
 class Mp3Validator(AbstractMicroservice):
-    __SOURCE_TO_TOPIC = {'Controller': CONTROLLER_TOPIC, 'Spider': SPIDER_TOPIC}
-
     def __init__(self, name: str = 'Mp3Validator', log_func: Callable[[str], None] = print):
         super().__init__(name, log_func)
         self.__message_receiver = RabbitMqConsumer(MP3_VERIFIER_QUEUE.name, self.__on_received_message)
@@ -34,7 +32,7 @@ class Mp3Validator(AbstractMicroservice):
 
         message['result'] = self.__validate_song(song)
         # The song identifier is left untouched.
-        self.__redis.publish(self.__SOURCE_TO_TOPIC[source], json.dumps(message))
+        self.__redis.publish(SOURCE_TO_TOPIC[source], json.dumps(message))
 
     @staticmethod
     def __validate_song(song: bytes) -> bool:

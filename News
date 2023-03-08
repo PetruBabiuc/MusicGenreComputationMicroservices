@@ -1,7 +1,10 @@
-- Added OAUTH2 with JWT authentication and authorization for the database API
-- Now the passwords are stored as hashes created with Bcrypt hashing algorithm
-- Created a database API proxy class that:
-    - Encapsulates the communication logic with the database API
-    - Acquires/renews JWT from the database using the given credentials
-- Secured most of the database API endpoints
-- Created automated tests for identity management function and the API proxy
+Microservice encapsulation in Docker containers
+- The microservices can now be deployed in Docker containers (tasks of services of Docker Swarm Mode)
+- Created 'dockerfiles', 'requirements.txt' and modules for each microservice in docker_images directory
+- Created commands for creating every service needed for the system (docker_images/service_creation_commands)
+    - Note that the services communicate through networks of type 'overlay'
+- Created microservice docker image template in docker_image_template directory
+- Implemented scripts for stopping, starting and resetting the system in the docker_main.py
+- There are 2 useful commands:
+    - Command to concatenate and tail the microservices' outputs;
+    - Command to delete all the containers with the 'Exited' status

@@ -87,5 +87,13 @@ def test2():
         t.join()
 
 
+def test_docker_redis():
+    r = create_redis()
+
+    r.ping()
+
+    print('Connected to redis...')
+
+
 if __name__ == '__main__':
-    test2()
+    test_docker_redis()

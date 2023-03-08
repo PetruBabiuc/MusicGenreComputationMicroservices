@@ -133,7 +133,9 @@ dmypy.json
 *.bkp
 *.dtmp
 *.txt
+!requirements.txt
 dnn/*
 .idea
 *.raw
 !Diagrama *.png
+*.tflearn.*

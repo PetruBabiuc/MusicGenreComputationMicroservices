@@ -1,0 +1,37 @@
+docker service create --name spectrogram_filter --network rabbit_mq_network --network spectrogram_filter_network --network spectrogram_queue_network --network slice_genre_aggregator_network -e slice_genre_aggregator_host=slice_genre_aggregator -e spectrogram_filter_host=0.0.0.0 -e spectrogram_queue_host=spectrogram_queue localhost:5000/spectrogram_filter
+
+docker service create --name spectrogram_maker --network rabbit_mq_network --network spectrogram_filter_network -e rabbit_mq_host=rabbit_mq -e spectrogram_filter_host=spectrogram_filter localhost:5000/spectrogram_maker
+
+docker service create --name rabbit_mq -p 5672:5672 -p 15672:15672 --network rabbit_mq_network localhost:5000/rabbit_mq
+
+docker service create --name maria_db -p 3306:3306 --network maria_db_network -e MYSQL_ROOT_PASSWORD=root -e MYSQL_USER=petru-admin -e MYSQL_PASSWORD=petru-admin localhost:5000/maria_db
+
+docker service create --name database_api -p 2700:2700 --network database_api_network --network maria_db_network -e maria_db_host=maria_db localhost:5000/database_api
+
+docker service create --name slice_genre_predictor --network rabbit_mq_network -e rabbit_mq_host=rabbit_mq localhost:5000/slice_genre_predictor
+
+docker service create --name spectrogram_queue --network spectrogram_queue_network -e spectrogram_queue_host=0.0.0.0 localhost:5000/spectrogram_queue
+
+docker service create --name spectrogram_slicer --network rabbit_mq_network --network spectrogram_queue_network -e rabbit_mq_host=rabbit_mq -e spectrogram_queue_host=spectrogram_queue localhost:5000/spectrogram_slicer
+
+docker service create --name slice_data_processor --network rabbit_mq_network --network slice_genre_aggregator_network -e rabbit_mq_host=rabbit_mq -e slice_genre_aggregator_host=slice_genre_aggregator localhost:5000/slice_data_processor
+
+docker service create --name slice_genre_aggregator --network slice_genre_aggregator_network --network genre_computer_request_manager_network -e slice_genre_aggregator_host=0.0.0.0 -e genre_computer_request_manager_host=genre_computer_request_manager localhost:5000/slice_genre_aggregator
+
+docker service create --name genre_computer_request_manager --network database_api_network --network rabbit_mq_network --network genre_computer_request_manager_network --network crawler_genre_obtainer_network -e crawler_genre_obtainer_host=song_genre_obtainer -e song_adder_controller_host=song_adder_controller -e genre_computer_request_manager_host=0.0.0.0 -e rabbit_mq_host=rabbit_mq -e database_api_host=database_api localhost:5000/genre_computer_request_manager
+
+docker service create --name redis --network redis_network -p 6379:6379 redis:7.0.9-alpine
+
+docker service create --name song_validator --network redis_network --network rabbit_mq_network -e rabbit_mq_host=rabbit_mq -e redis_host=redis localhost:5000/song_validator
+
+docker service create --name song_adder_controller -p 1800:1800 --network redis_network --network rabbit_mq_network --network genre_computer_request_manager_network --network database_api_network -e database_api_host=database_api -e genre_computer_request_manager_host=genre_computer_request_manager -e rabbit_mq_host=rabbit_mq -e redis_host=redis -e song_adder_controller_host=0.0.0.0 localhost:5000/song_adder_controller
+
+docker service create --name crawler_engine --network rabbit_mq_network --network database_api_network --network crawler_engine_network -e rabbit_mq_host=rabbit_mq -e crawler_engine_host=0.0.0.0 -e database_api_host=database_api -e crawler_management_controller_host=crawler_management_controller localhost:5000/crawler_engine
+
+docker service create --name spider --network rabbit_mq_network --network redis_network -e rabbit_mq_host=rabbit_mq -e redis_host=redis localhost:5000/spider
+
+docker service create --name song_url_processor --network rabbit_mq_network --network song_genre_obtainer_network -e rabbit_mq_host=rabbit_mq -e song_genre_obtainer_host=song_genre_obtainer localhost:5000/song_url_processor
+
+docker service create --name song_genre_obtainer --network rabbit_mq_network --network song_genre_obtainer_network --network database_api_network --network genre_computer_request_manager_network -e rabbit_mq_host=rabbit_mq -e genre_computer_request_manager_host=genre_computer_request_manager -e crawler_genre_obtainer_host=0.0.0.0 -e database_api_host=database_api localhost:5000/song_genre_obtainer
+
+docker service create --name crawler_management_controller -p 1850:1850 --network rabbit_mq_network --network database_api_network --network crawler_engine_network -e crawler_management_controller_host=0.0.0.0 -e crawler_engine_host=crawler_engine -e database_api_host=database_api localhost:5000/crawler_management_controller
