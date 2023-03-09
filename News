@@ -1,10 +1,9 @@
-Microservice encapsulation in Docker containers
-- The microservices can now be deployed in Docker containers (tasks of services of Docker Swarm Mode)
-- Created 'dockerfiles', 'requirements.txt' and modules for each microservice in docker_images directory
-- Created commands for creating every service needed for the system (docker_images/service_creation_commands)
-    - Note that the services communicate through networks of type 'overlay'
-- Created microservice docker image template in docker_image_template directory
-- Implemented scripts for stopping, starting and resetting the system in the docker_main.py
-- There are 2 useful commands:
-    - Command to concatenate and tail the microservices' outputs;
-    - Command to delete all the containers with the 'Exited' status
+Docker encapsulation update
+- Added more utility functions for Docker management
+- Now the Docker images are hosted on DockerHub
+- The services use the images from DockerHub
+- I tested the system in a swarm with 2 nodes (hosts):
+    - One was my laptop, one was my computer (connected in a private network, behind a router)
+    - The Docker swarm mode seems to distribute the services' tasks equally to the hosts
+    - The Docker load balancer appears to be forwarding requests in a 'round robin' way (exactly as specified in the documentation)
+    - Overall the system works just fine on 2 hosts

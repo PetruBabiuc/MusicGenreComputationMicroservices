@@ -38,3 +38,26 @@ def start(services_collection: list[list[str]] | list[dict[str, int]]) -> None:
 def reset(services_collection: list[list[str]] | list[dict[str, int]]) -> None:
     stop(services_collection)
     start(services_collection)
+
+
+def push_images(images: list[str], tag_before_push: bool = False) -> None:
+    command = 'docker push petrubabiuc/licenta:{0}'
+    if tag_before_push:
+        command = 'docker tag localhost:5000/{0} && ' + command
+    for image in images:
+        os.system(command.format(image))
+
+
+def create_networks(networks: list[str]) -> None:
+    command = 'docker network create -d overlay {0}'
+    for network in networks:
+        os.system(command.format(network))
+
+
+def run_file(file_name: str) -> None:
+    with open(file_name) as f:
+        commands = f.readlines()
+
+    for command in commands:
+        if command != '':
+            os.system(command)
