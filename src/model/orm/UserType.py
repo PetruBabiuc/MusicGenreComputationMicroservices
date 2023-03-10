@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import declarative_base
+from src.helpers.ModelUtils import Base
 
 
-class UserType(declarative_base()):
-    __tablename__ = 'user_types'
+class UserType(Base):
+    __tablename__ = 'user_type'
 
     user_type_id = Column(Integer, primary_key=True)
     user_type_name = Column(String)

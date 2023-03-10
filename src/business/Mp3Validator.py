@@ -23,6 +23,7 @@ class Mp3Validator(AbstractMicroservice):
 
     def __on_received_message(self, message: bytes) -> None:
         message = json.loads(message)
+        self._log_func(f'[{self._name}] Message received ...')
         source = message['source']
         del message['source']
 
@@ -31,6 +32,7 @@ class Mp3Validator(AbstractMicroservice):
         del message['song']
 
         message['result'] = self.__validate_song(song)
+        self._log_func(f'[{self._name}] Result: {message}')
         # The song identifier is left untouched.
         self.__redis.publish(SOURCE_TO_TOPIC[source], json.dumps(message))
 

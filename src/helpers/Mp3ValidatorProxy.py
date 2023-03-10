@@ -23,4 +23,3 @@ class Mp3ValidatorProxy(Mp3ValidatorProxyInterface):
         self.__mp3_validator_sender.send_message(json.dumps(request).encode())
         result = self.__mp3_validation_awaiter.await_result(key)
         return result['result']
-

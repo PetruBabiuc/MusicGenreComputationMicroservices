@@ -3,12 +3,14 @@ SELECT user_id "user_id", s.service_name "service_name", uts.quantity "quantity"
 	FROM user u 
 	JOIN user_to_service uts USING(user_id) 
 	JOIN service s USING (service_id)
-	WHERE user_id=5
+	WHERE user_id=7
 ;
 
 SELECT * FROM song_url;
 
 SELECT * FROM song;
+
+SELECT * FROM user_type;
 
 SELECT * FROM resource_url;
 

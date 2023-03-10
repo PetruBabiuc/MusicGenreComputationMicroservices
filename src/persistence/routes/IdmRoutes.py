@@ -3,13 +3,18 @@ from typing import Literal
 from classy_fastapi import post
 from fastapi import Body, HTTPException, Depends
 from jose import JWTError
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY
+from sqlalchemy.exc import IntegrityError
+from starlette.responses import Response
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED
 
 import config.database_api as api_paths
 from config import user_types
 from src.helpers.security.PasswordManager import PasswordManager
+from src.model.orm.Service import Service
 from src.model.orm.User import User
-from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
+from src.model.orm.UserToService import UserToService
+from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import \
+    AbstractSecuredDatabaseApiRoutable
 
 
 class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
@@ -63,3 +68,30 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
     def logout(self, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
         # TODO: Use a JWT Blacklist/other means to invalidate JWT
         return
+
+    @post(api_paths.REGISTER_PATH)
+    def register(self, body: dict[str, str] = Body()):
+        if self.__USER_NAME_FIELD not in body or self.__PASSWORD_FIELD not in body:
+            raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY,
+                                f'Required fields: {self.__USER_NAME_FIELD}, {self.__PASSWORD_FIELD}')
+
+        user_name = body[self.__USER_NAME_FIELD]
+        password = body[self.__PASSWORD_FIELD]
+
+        for field in user_name, password:
+            if len(field) > 30:
+                raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY,
+                                    'The fields should have the max length of 30 characters')
+
+        password = self.__password_manager.hash_password(password)
+        session = self._create_session()
+        user = User(user_name=user_name, password=password, is_active=True, user_type_id=user_types.USER)
+        try:
+            session.add(user)
+            services = session.query(Service).all()
+            user_services = [UserToService(user.user_id, s.service_id, 0) for s in services]
+            session.add_all(user_services)
+            session.commit()
+        except IntegrityError as ex:
+            raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY, 'Username already taken')
+        return Response(status_code=HTTP_201_CREATED)

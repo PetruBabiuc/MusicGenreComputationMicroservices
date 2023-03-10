@@ -22,6 +22,7 @@ USER_BY_ID_PATH = f'{USERS_PATH}/{{{PathParamNames.USER_ID}}}'
 # Identity management
 LOGIN_PATH = f'{RESOURCE_BASE_PATH}/login'
 LOGOUT_PATH = f'{RESOURCE_BASE_PATH}/logout'
+REGISTER_PATH = f'{RESOURCE_BASE_PATH}/register'
 VALIDATE_JWT_PATH = f'{RESOURCE_BASE_PATH}/validate-jwt'
 
 # Services
