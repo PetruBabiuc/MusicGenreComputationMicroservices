@@ -18,6 +18,7 @@ class PathParamNames:
 # Users
 USERS_PATH = f'{RESOURCE_BASE_PATH}/users'
 USER_BY_ID_PATH = f'{USERS_PATH}/{{{PathParamNames.USER_ID}}}'
+TOGGLE_USER_ACTIVE_PATH = f'{USER_BY_ID_PATH}/toggle-active'
 
 # Identity management
 LOGIN_PATH = f'{RESOURCE_BASE_PATH}/login'

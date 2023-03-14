@@ -20,6 +20,8 @@ ADD config/dnn.py /config/dnn.py
 ADD src/helpers/security/FastApiJwtManager.py /src/helpers/security/FastApiJwtManager.py
 ADD src/helpers/security/JwtManager.py /src/helpers/security/JwtManager.py
 ADD src/helpers/security/PasswordManager.py /src/helpers/security/PasswordManager.py
+ADD src/helpers/security/BlacklistFastApiJwtManager.py /src/helpers/security/BlacklistFastApiJwtManager.py
+ADD src/helpers/abstract_classes/JwtBlacklistInterface.py /src/helpers/abstract_classes/JwtBlacklistInterface.py
 ADD src/helpers/ModelUtils.py /src/helpers/ModelUtils.py
 
 ADD src/model/orm/Bill.py /src/model/orm/Bill.py

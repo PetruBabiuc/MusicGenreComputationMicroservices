@@ -1,14 +1,17 @@
-from typing import Literal
+from typing import Literal, Union
 
 from classy_fastapi import post
 from fastapi import Body, HTTPException, Depends
 from jose import JWTError
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED, HTTP_409_CONFLICT
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED, HTTP_409_CONFLICT, \
+    HTTP_403_FORBIDDEN
 
 import config.database_api as api_paths
 from config import user_types
+from src.helpers.abstract_classes.JwtBlacklistInterface import JwtBlacklistInterface
+from src.helpers.security.BlacklistFastApiJwtManager import BlacklistFastApiJwtManager
 from src.helpers.security.PasswordManager import PasswordManager
 from src.model.orm.Service import Service
 from src.model.orm.User import User
@@ -21,16 +24,16 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
     __USER_NAME_FIELD = 'user_name'
     __PASSWORD_FIELD = 'password'
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, jwt_manager: BlacklistFastApiJwtManager):
+        super().__init__(jwt_manager)
         self.__password_manager = PasswordManager()
+        self.__jwt_blacklist: JwtBlacklistInterface = jwt_manager
 
     @post(api_paths.LOGIN_PATH)
     def login(self, body: dict[str, str] = Body()):
         if self.__USER_NAME_FIELD not in body or self.__PASSWORD_FIELD not in body:
             raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY,
                                 f'Required fields: {self.__USER_NAME_FIELD}, {self.__PASSWORD_FIELD}')
-
         user_name = body[self.__USER_NAME_FIELD]
         password = body[self.__PASSWORD_FIELD]
 
@@ -60,14 +63,18 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
         try:
             payload = self._jwt_manager.decode_jwt(body['jwt'])
             pass
-        except JWTError as e:
+        except Union[JWTError, HTTPException] as e:
             return {'status': 'invalid'}
         return {'status': 'valid'}
 
     @post(api_paths.LOGOUT_PATH)
     def logout(self, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
-        # TODO: Use a JWT Blacklist/other means to invalidate JWT
-        return
+        try:
+            payload = self._jwt_manager.decode_jwt(token)
+        except JWTError:
+            raise HTTPException(HTTP_403_FORBIDDEN)
+
+        self.__jwt_blacklist.blacklist_jwt(token, payload['exp'])
 
     @post(api_paths.REGISTER_PATH)
     def register(self, body: dict[str, str] = Body()):

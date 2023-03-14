@@ -18,7 +18,7 @@ docker service create --name slice_data_processor --network rabbit_mq_network --
 
 docker service create --name slice_genre_aggregator --network slice_genre_aggregator_network --network genre_computer_request_manager_network -e slice_genre_aggregator_host=0.0.0.0 -e genre_computer_request_manager_host=genre_computer_request_manager petrubabiuc/licenta:slice_genre_aggregator
 
-docker service create --name genre_computer_request_manager --network database_api_network --network rabbit_mq_network --network genre_computer_request_manager_network --network crawler_genre_obtainer_network -e crawler_genre_obtainer_host=song_genre_obtainer -e song_adder_controller_host=song_adder_controller -e genre_computer_request_manager_host=0.0.0.0 -e rabbit_mq_host=rabbit_mq -e database_api_host=database_api petrubabiuc/licenta:genre_computer_request_manager
+docker service create --name genre_computer_request_manager --network database_api_network --network rabbit_mq_network --network genre_computer_request_manager_network --network crawler_genre_obtainer_network -e song_genre_obtainer_host=song_genre_obtainer -e song_adder_controller_host=song_adder_controller -e genre_computer_request_manager_host=0.0.0.0 -e rabbit_mq_host=rabbit_mq -e database_api_host=database_api petrubabiuc/licenta:genre_computer_request_manager
 
 docker service create --name redis --network redis_network -p 6379:6379 redis:7.0.9-alpine
 
@@ -32,6 +32,6 @@ docker service create --name spider --network rabbit_mq_network --network redis_
 
 docker service create --name song_url_processor --network rabbit_mq_network --network song_genre_obtainer_network -e rabbit_mq_host=rabbit_mq -e song_genre_obtainer_host=song_genre_obtainer petrubabiuc/licenta:song_url_processor
 
-docker service create --name song_genre_obtainer --network rabbit_mq_network --network song_genre_obtainer_network --network database_api_network --network genre_computer_request_manager_network -e rabbit_mq_host=rabbit_mq -e genre_computer_request_manager_host=genre_computer_request_manager -e crawler_genre_obtainer_host=0.0.0.0 -e database_api_host=database_api petrubabiuc/licenta:song_genre_obtainer
+docker service create --name song_genre_obtainer --network rabbit_mq_network --network song_genre_obtainer_network --network database_api_network --network genre_computer_request_manager_network -e rabbit_mq_host=rabbit_mq -e genre_computer_request_manager_host=genre_computer_request_manager -e song_genre_obtainer_host=0.0.0.0 -e database_api_host=database_api petrubabiuc/licenta:song_genre_obtainer
 
 docker service create --name crawler_management_controller -p 1850:1850 --network rabbit_mq_network --network database_api_network --network crawler_engine_network -e crawler_management_controller_host=0.0.0.0 -e crawler_engine_host=crawler_engine -e database_api_host=database_api petrubabiuc/licenta:crawler_management_controller

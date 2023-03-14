@@ -7,6 +7,6 @@ from src.presentation.abstract_classes.routes.AbstractDatabaseApiRoutable import
 class AbstractSecuredDatabaseApiRoutable(AbstractDatabaseApiRoutable):
     OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='token')
 
-    def __init__(self):
+    def __init__(self, jwt_manager: FastApiJwtManager):
         super().__init__()
-        self._jwt_manager = FastApiJwtManager()
+        self._jwt_manager = jwt_manager

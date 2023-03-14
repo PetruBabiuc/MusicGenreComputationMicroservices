@@ -1,0 +1,54 @@
+[
+  {
+    "name": "crawler_management_controller",
+    "path": "docker_images/api/crawler_management_controller"
+  },  {
+    "name": "database_api",
+    "path": "docker_images/api/database_api"
+  },  {
+    "name": "song_genre_obtainer",
+    "path": "docker_images/crawler/song_genre_obtainer"
+  },  {
+    "name": "spider",
+    "path": "docker_images/crawler/spider"
+  },  {
+    "name": "song_url_processor",
+    "path": "docker_images/crawler/song_url_processor"
+  },  {
+    "name": "crawler_engine",
+    "path": "docker_images/crawler/crawler_engine"
+  }, {
+    "name": "spectrogram_maker",
+    "path": "docker_images/genre_computation_pipeline/spectrogram_maker"
+  },  {
+    "name": "slice_data_processor",
+    "path": "docker_images/genre_computation_pipeline/slice_data_processor"
+  },  {
+    "name": "spectrogram_slicer",
+    "path": "docker_images/genre_computation_pipeline/spectrogram_slicer"
+  },  {
+    "name": "slice_genre_aggregator",
+    "path": "docker_images/genre_computation_pipeline/slice_genre_aggregator"
+  },  {
+    "name": "spectrogram_queue",
+    "path": "docker_images/genre_computation_pipeline/spectrogram_queue"
+  },  {
+    "name": "spectrogram_filter",
+    "path": "docker_images/genre_computation_pipeline/spectrogram_filter"
+  },  {
+    "name": "slice_genre_predictor",
+    "path": "docker_images/genre_computation_pipeline/slice_genre_predictor"
+  },  {
+    "name": "maria_db",
+    "path": "docker_images/maria_db"
+  },  {
+    "name": "genre_computer_request_manager",
+    "path": "docker_images/genre_computer_request_manager"
+  },  {
+    "name": "rabbit_mq",
+    "path": "docker_images/rabbit_mq"
+  },  {
+    "name": "song_validator",
+    "path": "docker_images/song_validator"
+  }
+]

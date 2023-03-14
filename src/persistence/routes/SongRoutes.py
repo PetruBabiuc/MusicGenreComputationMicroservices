@@ -1,19 +1,18 @@
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Any
 
 from classy_fastapi import get, patch, post, delete
 from fastapi import Body, Depends, HTTPException
-from pydantic import constr, conint
 from starlette.responses import JSONResponse
 
 import config.database_api as api_paths
-from config.dnn import GENRES
 from config.user_types import USER, MICROSERVICE
 from src.helpers.ModelUtils import orm_to_dict
 from src.model.dto.EditSongRequest import EditSongRequest
 from src.model.orm.Song import Song
 from src.model.orm.SongInfo import SongInfo
-from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
+from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import \
+    AbstractSecuredDatabaseApiRoutable
 
 
 class SongRoutes(AbstractSecuredDatabaseApiRoutable):
