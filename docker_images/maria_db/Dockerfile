@@ -1,3 +1,5 @@
 FROM mariadb:10.0
 
-ADD dump.sql /docker-entrypoint-initdb.d/dump.sql
+ENV IMAGE_PATH=docker_images/maria_db
+
+ADD $IMAGE_PATH/dump.sql /docker-entrypoint-initdb.d/dump.sql

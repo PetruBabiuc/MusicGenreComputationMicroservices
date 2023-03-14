@@ -1,6 +1,7 @@
 from typing import Callable
 
 from config import database_api
+from src.persistence.routes.BillRoutes import BillRoutes
 from src.persistence.routes.BloomFilterRoutes import BloomFilterRoutes
 from src.persistence.routes.CrawlerGeneralStateRoutes import CrawlerGeneralStateRoutes
 from src.persistence.routes.IdmRoutes import IdmRoutes
@@ -16,7 +17,7 @@ from src.presentation.abstract_classes.AbstractFastApiController import Abstract
 class DatabaseAPI(AbstractFastApiController):
     def __init__(self, name: str = 'DatabaseAPI', log_func: Callable[[str], None] = print):
         routes = [UserRoutes(), CrawlerGeneralStateRoutes(), ResourceUrlRoutes(), SongUrlRoutes(), ServiceRoutes(),
-                  SongGenreRoutes(), SongRoutes(), BloomFilterRoutes(), IdmRoutes()]
+                  SongGenreRoutes(), SongRoutes(), BloomFilterRoutes(), IdmRoutes(), BillRoutes()]
 
         super().__init__(routes, name, database_api.API_HOST, database_api.API_PORT, log_func)
 

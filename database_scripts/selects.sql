@@ -16,6 +16,8 @@ SELECT * FROM resource_url;
 
 SELECT * FROM crawler_state;
 
+SELECT * FROM bill;
+
 SELECT * FROM song_genre;
 
 SELECT COUNT(*) FROM resource_url;

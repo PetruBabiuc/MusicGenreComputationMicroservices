@@ -9,6 +9,7 @@ class Bill(Base):
     bill_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.user_id'))
     price = Column(Float)
+    issue_date = Column(Date)
     deadline = Column(Date)
     is_paid = Column(Boolean)
 

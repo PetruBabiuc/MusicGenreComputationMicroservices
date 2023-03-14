@@ -25,9 +25,9 @@ class SongRoutes(AbstractSecuredRoutable):
         genres = self.__db_api_proxy.get_genres()
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
 
-    # TODO: Add constraints to name and author
     @post(controller.SONGS_PATH)
-    def post_song(self, name: str = Form(), author: str = Form(),
+    def post_song(self, name: str = Form(min_length=1, max_length=30),
+                  author: str = Form(min_length=1, max_length=30),
                   song: UploadFile = File(),
                   token: str = Depends(AbstractSecuredRoutable.OAUTH2_SCHEME)):
         self.__db_api_proxy.validate_jwt(token)

@@ -2,6 +2,7 @@ FROM python:3.9
 
 ENV PYTHONUNBUFFERED=1
 ENV IMAGE_PATH=docker_images/api/database_api
+
 RUN apt-get update &&  \
     apt-get install libmariadb3 libmariadb-dev
 
@@ -14,6 +15,7 @@ ADD config/database_api.py /config/database_api.py
 ADD config/front_end.py /config/front_end.py
 ADD config/jwt.py /config/jwt.py
 ADD config/user_types.py /config/user_types.py
+ADD config/dnn.py /config/dnn.py
 
 ADD src/helpers/security/FastApiJwtManager.py /src/helpers/security/FastApiJwtManager.py
 ADD src/helpers/security/JwtManager.py /src/helpers/security/JwtManager.py
@@ -33,6 +35,8 @@ ADD src/model/orm/SongFormat.py /src/model/orm/SongFormat.py
 ADD src/model/orm/SongInfo.py /src/model/orm/SongInfo.py
 ADD src/model/orm/UserToService.py /src/model/orm/UserToService.py
 ADD src/model/orm/SongUrl.py /src/model/orm/SongUrl.py
+
+ADD src/model/dto/EditSongRequest.py /src/model/dto/EditSongRequest.py
 
 ADD src/persistence/DatabaseAPI.py /src/persistence/DatabaseAPI.py
 ADD src/persistence/routes /src/persistence/routes

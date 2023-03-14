@@ -46,6 +46,8 @@ class CrawlerRoutes(AbstractSecuredRoutable):
                 .map(lambda pair: {'genre_id': pair[0], 'count': len(pair[1])})\
                 .to_list()
 
+            print(f'GenreIdToSongCount: {genre_id_to_songs_count}')
+
             with self.__users_crawling as users_crawling:
                 is_started = user_id in users_crawling
 

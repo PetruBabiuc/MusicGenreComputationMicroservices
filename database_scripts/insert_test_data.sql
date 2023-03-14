@@ -17,11 +17,18 @@ INSERT INTO user VALUES(DEFAULT, 'crawler_user_1', @password, 3, TRUE);
 INSERT INTO user VALUES(DEFAULT, 'crawler_user_2', @password, 3, TRUE);
 INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_1', @password, 3, TRUE);
 INSERT INTO user VALUES(DEFAULT, 'genre_computation_user_2', @password, 3, TRUE);
+INSERT INTO user VALUES(DEFAULT, 'disabled_user', @password, 3, FALSE);
 
 INSERT INTO service VALUES(DEFAULT, 'genre_computation', 50.0);
 INSERT INTO service VALUES(DEFAULT, 'crawled_resource', 2.0);
 
 -- user_id, service_id, quantity
+INSERT INTO user_to_service VALUES(1, 1, 0);
+INSERT INTO user_to_service VALUES(1, 2, 0);
+
+INSERT INTO user_to_service VALUES(2, 1, 0);
+INSERT INTO user_to_service VALUES(2, 2, 0);
+
 INSERT INTO user_to_service VALUES(3, 1, 0);
 INSERT INTO user_to_service VALUES(3, 2, 0);
 
@@ -33,6 +40,32 @@ INSERT INTO user_to_service VALUES(5, 2, 0);
 
 INSERT INTO user_to_service VALUES(6, 1, 0);
 INSERT INTO user_to_service VALUES(6, 2, 0);
+
+INSERT INTO user_to_service VALUES(7, 1, 0);
+INSERT INTO user_to_service VALUES(7, 2, 0);
+
+-- 2022 Bills
+INSERT INTO bill VALUES(NULL, 5, 892, '2022-1-28', '2022-2-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 623, '2022-2-28', '2022-3-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 422, '2022-3-28', '2022-4-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 591, '2022-4-28', '2022-5-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 873, '2022-5-28', '2022-6-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 231, '2022-6-28', '2022-7-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 862, '2022-7-28', '2022-8-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 222, '2022-8-28', '2022-9-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 671, '2022-9-28', '2022-10-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 620, '2022-10-28', '2022-11-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 692, '2022-11-28', '2022-12-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 433, '2022-12-28', '2023-1-15', TRUE);
+
+-- 2023 Bills
+INSERT INTO bill VALUES(NULL, 5, 524, '2023-1-28', '2023-2-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 700, '2023-2-28', '2023-3-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 411, '2023-3-28', '2023-4-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 620, '2023-4-28', '2023-5-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 630, '2023-5-28', '2023-6-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 322, '2023-6-28', '2023-7-15', TRUE);
+INSERT INTO bill VALUES(NULL, 5, 584, '2023-7-28', '2023-8-15', TRUE);
 
 INSERT INTO song_format VALUES(DEFAULT, 'MP3');
 

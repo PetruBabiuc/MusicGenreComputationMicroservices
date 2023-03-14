@@ -5,7 +5,7 @@ from fastapi import Body, HTTPException, Depends
 from jose import JWTError
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED, HTTP_409_CONFLICT
 
 import config.database_api as api_paths
 from config import user_types
@@ -79,9 +79,9 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
         password = body[self.__PASSWORD_FIELD]
 
         for field in user_name, password:
-            if len(field) > 30:
+            if not 5 <= len(field) <= 30:
                 raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY,
-                                    'The fields should have the max length of 30 characters')
+                                    'The fields should have the length between 5 and 30 characters!')
 
         password = self.__password_manager.hash_password(password)
         session = self._create_session()
@@ -93,5 +93,5 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
             session.add_all(user_services)
             session.commit()
         except IntegrityError as ex:
-            raise HTTPException(HTTP_422_UNPROCESSABLE_ENTITY, 'Username already taken')
+            raise HTTPException(HTTP_409_CONFLICT, 'Username already taken')
         return Response(status_code=HTTP_201_CREATED)

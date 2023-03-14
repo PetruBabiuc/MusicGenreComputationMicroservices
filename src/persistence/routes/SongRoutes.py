@@ -1,13 +1,16 @@
 from http import HTTPStatus
-from typing import Any
+from typing import Any, Optional
 
 from classy_fastapi import get, patch, post, delete
 from fastapi import Body, Depends, HTTPException
+from pydantic import constr, conint
 from starlette.responses import JSONResponse
 
 import config.database_api as api_paths
+from config.dnn import GENRES
 from config.user_types import USER, MICROSERVICE
 from src.helpers.ModelUtils import orm_to_dict
+from src.model.dto.EditSongRequest import EditSongRequest
 from src.model.orm.Song import Song
 from src.model.orm.SongInfo import SongInfo
 from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import AbstractSecuredDatabaseApiRoutable
@@ -53,7 +56,7 @@ class SongRoutes(AbstractSecuredDatabaseApiRoutable):
 
         return song.to_dict()
 
-    @get(api_paths.SONGS_OF_USER)
+    @get(api_paths.SONGS_OF_USER_PATH)
     def get_songs_of_user(self, user_id: int, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
         payload = self._jwt_manager.assert_has_user_type(token, USER)
 
@@ -66,19 +69,38 @@ class SongRoutes(AbstractSecuredDatabaseApiRoutable):
 
         return songs
 
+    @post(api_paths.EDIT_SONG_PATH)
+    def edit_song(self, song_id: int, request: EditSongRequest,
+                  token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
+        payload = self._jwt_manager.assert_has_user_type(token, USER)
+
+        session = self._create_session()
+
+        song: Song = session.get(Song, song_id)
+        if song is None:
+            raise HTTPException(HTTPStatus.NOT_FOUND)
+
+        if song.user_id != payload['user_id']:
+            raise HTTPException(HTTPStatus.FORBIDDEN)
+
+        song.genre_id = request.genre_id
+        song.song_name = request.song_name
+        song.song_info.author = request.author
+
+        session.commit()
+
     @patch(api_paths.SONG_BY_ID_PATH)
     def patch_song_by_id(self, song_id: int, body: dict[str, Any] = Body(),
                          token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
-        payload = self._jwt_manager.assert_has_user_type_in(token, [MICROSERVICE, USER])
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         query = session.query(Song).filter_by(song_id=song_id)
+
         if query.count() == 0:
             raise HTTPException(HTTPStatus.NOT_FOUND)
 
         song = query.first()
-        if payload['user_type_id'] == USER and payload['user_id'] != song.user_id:
-            raise HTTPException(HTTPStatus.FORBIDDEN)
 
         query.update(body)
         session.commit()
@@ -96,5 +118,6 @@ class SongRoutes(AbstractSecuredDatabaseApiRoutable):
         if song.user_id != payload['user_id']:
             raise HTTPException(HTTPStatus.FORBIDDEN)
 
+        session.delete(song.song_info)
         session.delete(song)
         session.commit()

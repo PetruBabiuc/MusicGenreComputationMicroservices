@@ -15,7 +15,7 @@ CREATE TABLE user_type (
 
 CREATE TABLE user (
   user_id int(11) NOT NULL AUTO_INCREMENT,
-  user_name varchar(100) NOT NULL,
+  user_name varchar(100) NOT NULL UNIQUE,
   password varchar(100) NOT NULL,
   user_type_id int(11) NOT NULL,
   is_active tinyint(1) NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE song_info (
 	author varchar(100) NULL,
 	original_format_id INT NULL,
 	PRIMARY KEY (song_id),
-	CONSTRAINT song_info_FK FOREIGN KEY (original_format_id) REFERENCES song_format(format_id) ON DELETE SET NULL ON UPDATE SET NULL
+	CONSTRAINT song_info_FK FOREIGN KEY (original_format_id) REFERENCES song_format(format_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE service (
@@ -74,6 +74,7 @@ CREATE TABLE bill (
 	bill_id INT auto_increment NULL,
 	user_id INT NOT NULL,
 	price FLOAT NOT NULL,
+	issue_date DATE NOT NULL,
 	deadline DATE NOT NULL,
 	is_paid BOOL DEFAULT FALSE NOT NULL,
 	PRIMARY KEY (bill_id),
