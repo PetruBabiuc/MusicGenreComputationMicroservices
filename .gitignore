@@ -139,3 +139,4 @@ dnn/*
 *.raw
 !Diagrama *.png
 *.tflearn.*
+songs/*
