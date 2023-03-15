@@ -20,7 +20,7 @@ docker service create --name slice_genre_aggregator --network slice_genre_aggreg
 
 docker service create --name genre_computer_request_manager --network database_api_network --network rabbit_mq_network --network genre_computer_request_manager_network --network crawler_genre_obtainer_network -e song_genre_obtainer_host=song_genre_obtainer -e song_adder_controller_host=song_adder_controller -e genre_computer_request_manager_host=0.0.0.0 -e rabbit_mq_host=rabbit_mq -e database_api_host=database_api petrubabiuc/licenta:genre_computer_request_manager
 
-docker service create --name redis --network redis_network -p 6379:6379 redis:7.0.9-alpine
+docker service create --name redis --network redis_network -p 6379:6379 petrubabiuc/licenta:redis
 
 docker service create --name song_validator --network redis_network --network rabbit_mq_network -e rabbit_mq_host=rabbit_mq -e redis_host=redis petrubabiuc/licenta:song_validator
 

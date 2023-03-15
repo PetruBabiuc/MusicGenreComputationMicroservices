@@ -68,6 +68,8 @@ class AbstractSpider(metaclass=ABCMeta):
         response = requests.head(url, allow_redirects=True)
         content_type = response.headers['Content-Type']
         types = content_type.split(';')
+        if not response.ok:
+            return []
         return [it.strip().casefold() for it in types]
 
     def crawl(self) -> SpiderReturn:

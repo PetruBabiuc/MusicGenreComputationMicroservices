@@ -85,7 +85,7 @@ if __name__ == '__main__':
             ReplicationInfo(SpectrogramFilter, 1, 'SpectrogramFilter', ()),
             ReplicationInfo(SpectrogramQueue, 1, 'SpectrogramQueue', ()),
             ReplicationInfo(SpectrogramSlicer, instances_number, 'SpectrogramSlicer', ()),
-            # ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
+            ReplicationInfo(SliceGenrePredictor, instances_number, 'SliceGenrePredictor', (dnn_path,)),
             ReplicationInfo(SliceDataProcessor, instances_number, 'SliceDataProcessor', ()),
             ReplicationInfo(SliceGenreAggregator, 1, 'SliceGenreAggregator', ()),
 

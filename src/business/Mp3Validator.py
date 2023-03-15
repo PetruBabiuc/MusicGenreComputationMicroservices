@@ -36,13 +36,14 @@ class Mp3Validator(AbstractMicroservice):
         # The song identifier is left untouched.
         self.__redis.publish(SOURCE_TO_TOPIC[source], json.dumps(message))
 
-    @staticmethod
-    def __validate_song(song: bytes) -> bool:
+    def __validate_song(self, song: bytes) -> bool:
         try:
             song = BytesIO(song)
             song = MP3(song)
             return MIN_SONG_LENGTH <= song.info.length <= MAX_SONG_LENGTH
-        except BaseException:
+        except BaseException as ex:
+            self._log_func(f'[{self._name}] Invalid song'
+                           f'\n\tException: {ex}')
             return False
 
     def run(self) -> None:

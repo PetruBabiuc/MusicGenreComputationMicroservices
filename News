@@ -1,3 +1,0 @@
-Register feature commit
-- Added register endpoint to the DatabaseAPI
-- Improved the docker images of the APIs (now add the updated source files through multiple ADD commands)

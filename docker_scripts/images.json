@@ -50,5 +50,8 @@
   },  {
     "name": "song_validator",
     "path": "docker_images/song_validator"
+  }, {
+    "name": "redis",
+    "path": "docker_images/redis"
   }
 ]

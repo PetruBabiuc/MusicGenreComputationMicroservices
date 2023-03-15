@@ -2,7 +2,7 @@ from typing import Literal, Union
 
 from classy_fastapi import post
 from fastapi import Body, HTTPException, Depends
-from jose import JWTError
+from jose import JWTError, ExpiredSignatureError
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_422_UNPROCESSABLE_ENTITY, HTTP_201_CREATED, HTTP_409_CONFLICT, \
@@ -63,7 +63,7 @@ class IdmRoutes(AbstractSecuredDatabaseApiRoutable):
         try:
             payload = self._jwt_manager.decode_jwt(body['jwt'])
             pass
-        except Union[JWTError, HTTPException] as e:
+        except Union[JWTError, HTTPException, ExpiredSignatureError] as e:
             return {'status': 'invalid'}
         return {'status': 'valid'}
 
