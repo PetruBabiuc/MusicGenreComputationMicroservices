@@ -1,5 +1,8 @@
 [
   {
+    "name": "song_adder_controller",
+    "path": "docker_images/api/song_adder_controller"
+  }, {
     "name": "crawler_management_controller",
     "path": "docker_images/api/crawler_management_controller"
   },  {

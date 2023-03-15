@@ -10,11 +10,11 @@ from services_informations import *
 if __name__ == '__main__':
     services = single_replica_services
 
-    # stop(services)
+    stop(services)
     # stop(services[1:])  # Stop all the services besides the one used to run in debug mode, on localhost with main.py
 
     # start(services)
-    start([services[0]])  # Start services necessary for running in the debug mode, on localhost with main.py
+    # start([services[0]])  # Start services necessary for running in the debug mode, on localhost with main.py
 
     # reset(services)
 

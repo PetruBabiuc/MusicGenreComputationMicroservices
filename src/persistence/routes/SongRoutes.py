@@ -106,16 +106,13 @@ class SongRoutes(AbstractSecuredDatabaseApiRoutable):
 
     @delete(api_paths.SONG_BY_ID_PATH)
     def delete_song(self, song_id: int, token: str = Depends(AbstractSecuredDatabaseApiRoutable.OAUTH2_SCHEME)):
-        payload = self._jwt_manager.assert_has_user_type(token, USER)
+        self._jwt_manager.assert_has_user_type(token, MICROSERVICE)
 
         session = self._create_session()
         song: Song = session.get(Song, song_id)
 
         if song is None:
             raise HTTPException(HTTPStatus.NOT_FOUND)
-
-        if song.user_id != payload['user_id']:
-            raise HTTPException(HTTPStatus.FORBIDDEN)
 
         session.delete(song.song_info)
         session.delete(song)

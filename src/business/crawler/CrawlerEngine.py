@@ -13,6 +13,7 @@ from config.constants import LOGGED_URLS, REQUEST_TIMEOUT
 from config.crawler_engine import HOST as CRAWLER_HOST, PORT as CRAWLER_PORT
 from config.database_api_credentials import MICROSERVICE_CREDENTIALS
 from config.rabbit_mq import Crawler
+from config.spider import MAX_FOUND_ITEMS
 from src.AbstractMicroservice import AbstractMicroservice
 from src.helpers import Base64Converter
 from src.helpers.DatabaseApiProxy import DatabaseApiProxy
@@ -29,8 +30,7 @@ class CrawlerEngine(AbstractMicroservice):
 
         # Caching information about genres
         genres = self.__database_proxy.get_genres()
-        # TODO: REMOVE OLD CODE
-        # genres = requests.get(API_URL_PREFIX + SONGS_GENRES_PATH).json()
+
         self.__genre_name_to_id = {genre['song_genre_name']: genre['song_genre_id'] for genre in genres}
         self.__genre_id_to_name = {genre['song_genre_id']: genre['song_genre_name'] for genre in genres}
 
@@ -38,12 +38,6 @@ class CrawlerEngine(AbstractMicroservice):
         self.__crawled_resource_service_id = self.__database_proxy.get_services(
             service_name='crawled_resource'
         )[0]['service_id']
-
-        # TODO: REMOVE OLD CODE
-        # self.__crawled_resource_service_id = self.__crawled_resource_service_id = requests.get(
-        #     API_URL_PREFIX + SERVICES_PATH, params={
-        #         'service_name': 'crawled_resource'
-        #     }).json()[0]['service_id']
 
         # Creating RabbitMq producers and consumers
         self.__sender_to_song_url_processors = RabbitMqProducer(Crawler.UrlProcessors.RESTORE_STATE_QUEUE.exchange,
@@ -77,11 +71,8 @@ class CrawlerEngine(AbstractMicroservice):
         # Getting crawler state. It will be up-to-date because the controller will make a PATCH request to the
         # database_scripts API.
 
-        # TODO: REMOVE OLD CODE
         crawler_state = self.__database_proxy.get_crawler_state(client_id)
 
-        # crawler_state = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id})).json()
         domain = crawler_state['domain']
         genre_id = crawler_state['desired_genre_id']
         genre = self.__genre_id_to_name[genre_id]
@@ -107,24 +98,14 @@ class CrawlerEngine(AbstractMicroservice):
 
         # Then, if we didn't have a song with the desired genre and we didn't find any song with the desired
         # genre in the songs (if we had any already found songs at all) we start crawling.
-        # TODO: REMOVE OLD CODE
         response = self.__database_proxy.get_bloom_filter(client_id)
-        # response = requests.get(API_URL_PREFIX + BLOOM_FILTER_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }))
+
         bloom_filter = response.json()['value'] if response.ok else None
         self.__start_crawling(client_id, domain, bloom_filter, max_crawled_resources, max_computed_genres)
 
     def __send_already_found_song_if_existing(self, client_id: int, domain: str, genre_id: int) -> bool:
         # Getting all the song urls found
-
-        # TODO: REMOVE OLD CODE
         already_found_songs = self.__database_proxy.get_already_found_songs(client_id, genre_id=genre_id)
-        # already_found_songs = requests.get(API_URL_PREFIX + SONGS_URLS_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }), params={
-        #     'genre_id': genre_id
-        # }).json()
 
         songs_urls_ids_to_remove = []
         found = False
@@ -150,11 +131,9 @@ class CrawlerEngine(AbstractMicroservice):
                            f'\n\tSong URL: {absolute_url}')
             found = True
             break
-        # TODO: REMOVE OLD CODE
+
         self.__database_proxy.bulk_delete_songs_urls(client_id, songs_urls_ids_to_remove)
-        # requests.post(API_URL_PREFIX + SONGS_URLS_BULK_DELETE_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }), json=songs_urls_ids_to_remove)
+
         if not found:
             self._log_func(f'[{self._name}]'
                            f'\n\tClientID: {client_id}'
@@ -165,20 +144,10 @@ class CrawlerEngine(AbstractMicroservice):
         # If the method was called without the parameter songs it is supposed to computing the genres of the songs
         # whose urls are persisted in the DB.
         if songs is None:
-            # TODO: REMOVE OLD CODE
             songs = self.__database_proxy.get_songs_urls(
                 client_id, genre_id=self.__genre_name_to_id['Computing...'])
-            # songs = requests.get(API_URL_PREFIX + SONGS_URLS_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }), params={
-            #     'genre_id': self.__genre_name_to_id['Computing...']
-            # }).json()
 
-            # TODO: REMOVE OLD CODE
             self.__database_proxy.bulk_delete_songs_urls(client_id, [song['song_url_id'] for song in songs])
-            # requests.post(API_URL_PREFIX + SONGS_URLS_BULK_DELETE_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }), json=[song['song_url_id'] for song in songs])
             songs = [it['song_url'] for it in songs]
         if len(songs) == 0:
             self._log_func(f'[{self._name}]'
@@ -223,20 +192,15 @@ class CrawlerEngine(AbstractMicroservice):
         if max_crawled_resources > 0:
             params['limit'] = max_crawled_resources
 
-        # TODO: REMOVE OLD CODE
         queue = self.__database_proxy.get_crawler_resources_urls(client_id, **params)
-        # queue = requests.get(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }), params=params).json()
+
         if len(queue) == 0:
             self._log_func(f'[{self._name}]'
                            f'\n\tClientID: {client_id}'
                            f'\n\tTrying to crawl the domain that has no resources to crawl left...')
-            # TODO: REMOVE OLD CODE
+
             self.__database_proxy.delete_bloom_filter(client_id)
-            # requests.delete(API_URL_PREFIX + BLOOM_FILTER_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }))
+
             self.__send_response_to_controller({
                 'client_id': client_id,
                 'ok': False,
@@ -246,11 +210,9 @@ class CrawlerEngine(AbstractMicroservice):
 
         # Deleting every resource sent to spiders from the DB.
         resources_ids = [it['resource_url_id'] for it in queue]
-        # TODO: REMOVE OLD CODE
+
         self.__database_proxy.bulk_delete_crawler_resources_urls(client_id, resources_ids)
-        # requests.post(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_BULK_DELETE_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }), json=resources_ids)
+
         message = {
             'client_id': client_id,
             'domain': domain,
@@ -260,7 +222,7 @@ class CrawlerEngine(AbstractMicroservice):
             #   1 => just one (minimises user's costs)
             #   max_computed_genres => if getting song's genre from ID3 metadata would count as genre computation
             #       this will minimise both user's cost and resources' usage
-            'max_found_items': 1
+            'max_found_items': MAX_FOUND_ITEMS
         }
         message_to_print = dict(message)
         queue = [it['resource_url'] for it in queue]
@@ -289,53 +251,25 @@ class CrawlerEngine(AbstractMicroservice):
         songs = message['urls_to_process']
 
         # Updating the quantity of 'crawled_resource' service used by the user
-        # TODO: REMOVE OLD CODE
+
         self.__database_proxy.increase_user_service_quantity(
             client_id, self.__crawled_resource_service_id, message['resources_crawled'])
-        # requests.patch(API_URL_PREFIX + USER_BY_ID_SERVICE_BY_ID_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id,
-        #     PathParamNames.SERVICE_ID: self.__crawled_resource_service_id
-        # }), json={
-        #     'op': 'add_quantity',
-        #     'value': message['resources_crawled']
-        # })
 
         # Getting desired genre from the persisted crawler state
-        # TODO: REMOVE OLD CODE
         crawler_state = self.__database_proxy.get_crawler_state(client_id)
-        # crawler_state = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # })).json()
 
         # If there are more resources to be crawled we update the bloom filter.
-        # TODO: REMOVE OLD CODE
         resources_urls = self.__database_proxy.get_crawler_resources_urls(client_id)
-        # resources_urls = requests.get(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # })).json()
+
         if len(queue) > 0 or len(resources_urls) > 0:
-            # TODO: REMOVE OLD CODE
             self.__database_proxy.patch_crawler_state(client_id, {
                 'max_crawled_resources': crawler_state['max_crawled_resources'] - message['resources_crawled']
             })
-            # requests.patch(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }), json={
-            #     'max_crawled_resources': crawler_state['max_crawled_resources'] - message['resources_crawled']
-            # })
 
-            # TODO: REMOVE OLD CODE
             self.__database_proxy.put_bloom_filter(client_id, message['bloom_filter'])
-            # requests.put(API_URL_PREFIX + BLOOM_FILTER_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }), json={'value': message['bloom_filter']})
 
             # Inserting the new resources urls in the DB.
-            # TODO: REMOVE OLD CODE
             self.__database_proxy.bulk_add_crawler_resources_urls(client_id, queue)
-            # requests.post(API_URL_PREFIX + CRAWLER_RESOURCES_URLS_BULK_ADD_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }), json=queue)
 
         if len(songs) == 0:
             # Telling controller that no song was found.
@@ -367,15 +301,10 @@ class CrawlerEngine(AbstractMicroservice):
         genre_to_urls['Computing...'].extend(unchecked_urls)
 
         # Persisting every song url
-        # TODO: REMOVE OLD CODE
+
         self.__database_proxy.bulk_add_songs_urls(client_id, {
             str(self.__genre_name_to_id[genre]): song_urls for genre, song_urls in genre_to_urls.items()
         })
-        # requests.post(API_URL_PREFIX + SONGS_URLS_BULK_ADD_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # }), json={
-        #     str(self.__genre_name_to_id[genre]): song_urls for genre, song_urls in genre_to_urls.items()
-        # })
 
         # If song with the desired genre was found return it to controller
         if 'song' in message:
@@ -392,23 +321,19 @@ class CrawlerEngine(AbstractMicroservice):
 
         # If no song was from the desired genre, we start crawling again
         # (if max_resources_crawled number is still positive)
-        # TODO: REMOVE OLD CODE
         crawler_state = self.__database_proxy.get_crawler_state(client_id)
-        # crawler_state = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # })).json()
+
         max_crawled_resources = crawler_state['max_crawled_resources']
         max_computed_genres = crawler_state['max_computed_genres']
+
         if max_crawled_resources > 0 and max_computed_genres > 0:
             self._log_func(f'[{self._name}]'
                            f'\n\tClientID: {client_id}'
                            f'\n\tEvent: No song found with the desired genre found by the UrlProcessors...'
                            f'\n\tAction taken: Started crawling again...')
-            # TODO: REMOVE OLD CODE
+
             response = self.__database_proxy.get_bloom_filter(client_id)
-            # response = requests.get(API_URL_PREFIX + BLOOM_FILTER_PATH.format(**{
-            #     PathParamNames.USER_ID: client_id
-            # }))
+
             bloom_filter = response.json()['value'] if response.ok else None
             self.__start_crawling(client_id, crawler_state['domain'],
                                   bloom_filter, max_crawled_resources, max_computed_genres)

@@ -32,13 +32,9 @@ class SongGenreObtainer(AbstractMicroservice):
 
         self.__database_proxy = DatabaseApiProxy(*MICROSERVICE_CREDENTIALS)
 
-        # TODO: REMOVE OLD CODE
         self.__genre_computation_service_id = self.__database_proxy.get_services(
             service_name='genre_computation'
         )[0]['service_id']
-        # self.__genre_computation_service_id = requests.get(API_URL_PREFIX + SERVICES_PATH, params={
-        #     'service_name': 'genre_computation'
-        # }).json()[0]['service_id']
 
         self._log_func(f'[{self._name}] ServerSocket for URL Processors opened on {HOST}:{URL_PROCESSOR_PORT}')
 
@@ -80,11 +76,8 @@ class SongGenreObtainer(AbstractMicroservice):
 
         message = {'source': 'Crawler', 'client_id': client_id}
 
-        # TODO: REMOVE OLD CODE
         max_computed_genres = self.__database_proxy.get_crawler_state(client_id)['max_computed_genres']
-        # max_computed_genres = requests.get(API_URL_PREFIX + CRAWLER_GENERAL_STATE_BY_ID_PATH.format(**{
-        #     PathParamNames.USER_ID: client_id
-        # })).json()['max_computed_genres']
+
         if max_computed_genres == 0:
             result = {'genre': 'Computing...'}
         else:
@@ -100,22 +93,7 @@ class SongGenreObtainer(AbstractMicroservice):
 
             result = self.__genre_awaiter.await_result(client_id)
 
-            # TODO: REMOVE DEBUG CODE
-            # result = {'genre': random.choice(GENRES)}
-
             self.__database_proxy.patch_crawler_state(client_id, {'max_computed_genres': max_computed_genres - 1})
-
-            # TODO: REMOVE OLD CODE
-            # quantity = requests.get(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
-            #     'user_id': client_id,
-            #     'service_id': self.__genre_computation_service_id
-            # }).json()[0]['quantity']
-            # requests.patch(API_URL_PREFIX + USERS_TO_SERVICES_PATH, params={
-            #     'user_id': client_id,
-            #     'service_id': self.__genre_computation_service_id
-            # }, json={
-            #     'quantity': quantity + 1
-            # })
 
         self._log_func(f'[{self._name}] Request handled:'
                        f'\n\tClient ID: {client_id}'

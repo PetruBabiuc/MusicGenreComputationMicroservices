@@ -50,10 +50,6 @@ class Mp3ProcessorMicroservice(AbstractMicroservice):
                 continue
             song = song.content
 
-            # TODO: REMOVE DEBUG CODE
-            # with open('/home/petru/Licenta/Microservices/tests/presentation/found_song.mp3', 'rb') as f:
-            #     song = f.read()
-
             genre = self.__compute_genre(client_id, song)['genre']
 
             # SongGenreObtainer stopped computing genres, so we should stop requesting genre computations

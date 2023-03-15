@@ -55,13 +55,13 @@ class AbstractSpiderMicroservice(AbstractMicroservice, metaclass=ABCMeta):
                        f'\n\tQueue:'
                        f'\n\t\tCount: {len(queue)}'
                        f'\n\t\tURLs: {queue[:LOGGED_URLS]} ... {queue[-LOGGED_URLS:]}')
+
         self.__spider.state = state
-        self.__spider.max_found_items = max_found_items
+        self.__spider.max_found_items = max_found_items  # MAX_FOUND_ITEMS
         self.__spider.max_crawled_resources = max_crawled_resources
-        # TODO: REMOVE DEBUG CODE
+
         spider_return = self.__spider.crawl()
-        # time.sleep(3600)
-        # spider_return = SpiderReturn('dom', ['l1', 'l2'], [], 12, '')
+
         self._log_func(f'[{self._name}] Returned:'
                        f'\n\tClientID: {client_id}'
                        f'\n\tDomain: {spider_return.domain}'

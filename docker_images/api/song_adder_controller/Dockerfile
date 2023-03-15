@@ -5,7 +5,10 @@ ENV IMAGE_PATH=docker_images/api/song_adder_controller
 
 ADD $IMAGE_PATH/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
+
 ADD $IMAGE_PATH/main.py main.py
+ADD $IMAGE_PATH/1.mp3 songs/1
+ADD $IMAGE_PATH/2.mp3 songs/2
 
 ADD config/constants.py config/constants.py
 ADD config/database_api.py config/database_api.py

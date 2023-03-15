@@ -17,8 +17,6 @@ class Mp3Processor(AbstractMimeContentProcessor):
         self.__mp3_validator_proxy = Mp3ValidatorProxy(SPIDER_TOPIC, 'song_url')
 
     def process_resource(self, resource: str, domain: str) -> tuple[list[str], bool]:
-        # TODO: REMOVE
-        # return [], True
         # Test if the response's content is an MP3
         resource = urljoin(domain, resource)
         response = self._resource_obtainer.obtain_resource(resource)

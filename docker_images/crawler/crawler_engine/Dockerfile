@@ -14,6 +14,7 @@ ADD config/crawler_management_controller.py config/crawler_management_controller
 ADD config/database_api.py config/database_api.py
 ADD config/database_api_credentials.py config/database_api_credentials.py
 ADD config/rabbit_mq.py config/rabbit_mq.py
+ADD config/spider.py config/spider.py
 
 ADD src/business/crawler/CrawlerEngine.py src/business/crawler/CrawlerEngine.py
 

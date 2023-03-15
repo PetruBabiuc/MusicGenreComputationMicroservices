@@ -199,11 +199,8 @@ INSERT INTO song_genre VALUES(DEFAULT, 'Instrumental');
 INSERT INTO song_genre VALUES(DEFAULT, 'Folk');
 INSERT INTO song_genre VALUES(DEFAULT, 'Computing...');
 
-INSERT INTO song VALUES(DEFAULT, 5, 2, 'Umbrella');
-INSERT INTO song VALUES(DEFAULT, 5, 1, 'Memories');
+INSERT INTO song VALUES(DEFAULT, 5, 5, 'Acceptance');
+INSERT INTO song VALUES(DEFAULT, 5, 1, 'Mineral');
 
-INSERT INTO song_info VALUES(1, 'Rihanna', 1);
-INSERT INTO song_info VALUES(2, 'David Guetta', 1);
-
-INSERT INTO crawler_state VALUES(1, 1, 'http://google.com/', 99, 88);
-INSERT INTO bloom_filter VALUES(1, 'BIG BASE64 STRING');
+INSERT INTO song_info VALUES(1, 'Evgenia Kostitsyna', 1);
+INSERT INTO song_info VALUES(2, 'HRCRX', 1);

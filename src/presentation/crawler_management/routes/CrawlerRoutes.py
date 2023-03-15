@@ -74,8 +74,6 @@ class CrawlerRoutes(AbstractSecuredRoutable):
 
         # try-finally block to prevent the user not being removed from the crawling users set
         try:
-            # time.sleep(30)
-            # return {'result': 'ok'}
             if request.domain is not None:
                 # Start crawling a new domain
                 parsed_domain = urlparse(request.domain)
@@ -126,8 +124,6 @@ class CrawlerRoutes(AbstractSecuredRoutable):
         if response['count'] > 0:
             return False
 
-        # TODO: REMOVE OLD CODE
-        # self.__database_proxy.patch_crawler_state(user_id, {'finished': True})
         self.__database_proxy.delete_bloom_filter(user_id)
 
         return True
