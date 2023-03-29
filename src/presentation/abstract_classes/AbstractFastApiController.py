@@ -38,4 +38,3 @@ class AbstractFastApiController(AbstractMicroservice, metaclass=ABCMeta):
 
     def run(self) -> None:
         uvicorn.run(self.__app, host=self.__host, port=self.__port)
-

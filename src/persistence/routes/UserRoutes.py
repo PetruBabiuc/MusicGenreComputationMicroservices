@@ -6,8 +6,6 @@ from fastapi import Depends, HTTPException
 import config.database_api as api_paths
 from config.user_types import ADMIN
 from src.helpers.ModelUtils import orm_to_dict
-from src.helpers.abstract_classes.JwtBlacklistInterface import JwtBlacklistInterface
-from src.helpers.security.BlacklistFastApiJwtManager import BlacklistFastApiJwtManager
 from src.model.orm.User import User
 from src.presentation.abstract_classes.routes.AbstractSecuredDatabaseApiRoutable import \
     AbstractSecuredDatabaseApiRoutable

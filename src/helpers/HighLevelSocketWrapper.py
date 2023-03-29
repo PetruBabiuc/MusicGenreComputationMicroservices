@@ -22,7 +22,6 @@ class HighLevelSocketWrapper(SyncMessageConsumerInterface, MessageProducerInterf
         self.__sendfile = _socket.sendfile
         self.__sendall = _socket.sendall
         self.__recv = _socket.recv
-        self.__accept = _socket.accept
 
     def accept(self) -> tuple[HighLevelSocketWrapper, tuple[str, int]]:
         _socket, addr = self.__accept()

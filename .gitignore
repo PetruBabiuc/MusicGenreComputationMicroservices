@@ -137,6 +137,6 @@ dmypy.json
 dnn/*
 .idea
 *.raw
-!Diagrama *.png
+!diagrams/**/*.png
 *.tflearn.*
 songs/*

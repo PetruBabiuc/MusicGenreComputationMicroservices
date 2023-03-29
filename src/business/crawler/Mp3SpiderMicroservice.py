@@ -18,7 +18,7 @@ class Mp3SpiderMicroservice(AbstractMp3SpiderMicroservice):
         self._log_func(f'[{self._name}] Microservice started!')
 
     def _schedule_domain_request(self, domain: str):
-        time.sleep(0.25)  # TODO ?
+        time.sleep(0.25)
 
     def _send_spider_return(self, client_id, spider_return: SpiderReturn) -> None:
         message = spider_return.__dict__

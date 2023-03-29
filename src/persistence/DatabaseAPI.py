@@ -31,7 +31,7 @@ class DatabaseAPI(AbstractFastApiController):
 
         routable_classes: list[Type[AbstractDatabaseApiRoutable]] = [SongGenreRoutes]
 
-        routes: list[AbstractDatabaseApiRoutable] = [it(self.__jwt_manager) for it in secured_routable_classes] + \
+        routes: list[Routable] = [it(self.__jwt_manager) for it in secured_routable_classes] + \
                                                     [it() for it in routable_classes]
 
         super().__init__(routes, name, database_api.API_HOST, database_api.API_PORT, log_func)
