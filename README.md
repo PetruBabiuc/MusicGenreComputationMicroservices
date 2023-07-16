@@ -3,6 +3,9 @@ This is the repository containing the back-end of my bachelor's degree project. 
 * [FastAPI](https://fastapi.tiangolo.com/)
 * [TFLearn](http://tflearn.org/)
 
+The application has more use cases that can be observed in the following use case diagram (which is in romanian language):
+![Use-case diagram](https://github.com/PetruBabiuc/MusicGenreComputationMicroservices/blob/main/diagrams/use_case/Application's%20use%20cases.png)
+
 This repository contains:
 * Microservices' [source code](https://github.com/PetruBabiuc/MusicGenreComputationMicroservices/tree/main/src)
 * [Script](https://github.com/PetruBabiuc/MusicGenreComputationMicroservices/blob/main/docker_scripts/docker_main.py) to start the project locally (every microservice being encapsulated in a process)
